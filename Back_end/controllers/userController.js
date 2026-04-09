@@ -2,6 +2,64 @@ const pool = require("../db_config");
 const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 
+// Get login profiles (public endpoint)
+const getLoginProfiles = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT u.user_id, u.full_name, u.email, u.role_id, r.role_name, d.department_name
+       FROM users u
+       LEFT JOIN roles r ON u.role_id = r.role_name
+       LEFT JOIN departments d ON u.department_id = d.id
+       WHERE u.status = 'active'
+       ORDER BY u.role_id, u.full_name`
+    );
+
+    // Group users by role and pick one representative for each role
+    const profiles = {};
+    result.rows.forEach(user => {
+      if (!profiles[user.role_id]) {
+        profiles[user.role_id] = {
+          id: user.role_id,
+          label: getRoleDisplayName(user.role_id),
+          icon: getRoleIcon(user.role_id),
+          email: user.email,
+          role: user.role_id,
+          department: user.department_name,
+          full_name: user.full_name
+        };
+      }
+    });
+
+    res.json(Object.values(profiles));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Helper function to get display name for roles
+const getRoleDisplayName = (role) => {
+  const roleNames = {
+    'admin': 'Administrator',
+    'asset_manager': 'Asset Manager',
+    'technician': 'Technician',
+    'department_head': 'Department Head',
+    'staff': 'Staff'
+  };
+  return roleNames[role] || role;
+};
+
+// Helper function to get icon for roles
+const getRoleIcon = (role) => {
+  const roleIcons = {
+    'admin': '👨‍💼',
+    'asset_manager': '📊',
+    'technician': '🔧',
+    'department_head': '👨‍⚕️',
+    'staff': '👤'
+  };
+  return roleIcons[role] || '👤';
+};
+
 // Get all users
 const getUsers = async (req, res) => {
   try {
@@ -112,4 +170,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, getUserById, createUser, updateUser, deactivateUser, deleteUser };
+module.exports = { getUsers, getUserById, createUser, updateUser, deactivateUser, deleteUser, getLoginProfiles };
