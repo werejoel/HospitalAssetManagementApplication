@@ -16,8 +16,8 @@ const createDepartment = async (req, res) => {
   try {
     const id = uuidv4();
     const result = await pool.query(
-      `INSERT INTO departments (id, department_name, location, head_of_department, contact)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      `INSERT INTO departments (id, department_name, location, head_of_department, contact, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING *`,
       [id, department_name, location, head_of_department, contact]
     );
     res.status(201).json(result.rows[0]);

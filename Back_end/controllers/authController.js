@@ -5,12 +5,13 @@ const { v4: uuidv4 } = require("uuid");
 
 const register = async (req, res) => {
   const { full_name, username, email, password, phone_number, role } = req.body;
+  const lowerEmail = email.toLowerCase();
   
   try {
     // Check if user already exists
     const userExists = await pool.query(
       "SELECT * FROM users WHERE email = $1 OR username = $2",
-      [email, username]
+      [lowerEmail, username]
     );
     
     if (userExists.rows.length > 0) {
@@ -21,10 +22,10 @@ const register = async (req, res) => {
     const userId = uuidv4();
     
     const result = await pool.query(
-      `INSERT INTO users (user_id, full_name, username, email, password, phone_number, role_id, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING user_id, full_name, email, username, phone_number`,
-      [userId, full_name, username, email, hashedPassword, phone_number, role || "staff", "active"]
+      `INSERT INTO users (user_id, full_name, username, email, password, phone_number, role_id, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       RETURNING user_id, full_name, email, username, phone_number, role_id`,
+      [userId, full_name, username, lowerEmail, hashedPassword, phone_number, role || "staff", "active"]
     );
     
     const token = jwt.sign(
@@ -35,7 +36,14 @@ const register = async (req, res) => {
     
     res.status(201).json({
       message: "User registered successfully",
-      user: result.rows[0],
+      user: {
+        id: result.rows[0].user_id,
+        full_name: result.rows[0].full_name,
+        email: result.rows[0].email,
+        username: result.rows[0].username,
+        role: result.rows[0].role_id,
+        phone_number: result.rows[0].phone_number,
+      },
       token,
     });
   } catch (err) {
@@ -46,11 +54,12 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+  const lowerEmail = email.toLowerCase();
   
   try {
     const result = await pool.query(
       "SELECT * FROM users WHERE email = $1",
-      [email]
+      [lowerEmail]
     );
     
     if (result.rows.length === 0) {

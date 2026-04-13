@@ -31,7 +31,7 @@ const createCrudControllers = (tableName, fields) => {
         const fieldNames = ["id", ...fields].join(", ");
         
         const result = await pool.query(
-          `INSERT INTO ${tableName} (${fieldNames}) VALUES ($1, ${placeholders}) RETURNING *`,
+          `INSERT INTO ${tableName} (${fieldNames}, created_at, updated_at) VALUES ($1, ${placeholders}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING *`,
           values
         );
         res.status(201).json(result.rows[0]);

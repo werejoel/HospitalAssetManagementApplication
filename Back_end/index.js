@@ -21,7 +21,7 @@ const faultReportsRouter = require("./routes/faultReports");
 const movementsRouter = require("./routes/movements");
 const disposalsRouter = require("./routes/disposals");
 
-// API Routes
+//API Routes
 app.use("/api/auth", authRouter);
 app.use("/api/assets", assetsRouter);
 app.use("/api/departments", departmentsRouter);

@@ -55,8 +55,8 @@ const createAsset = async (req, res) => {
     
     const id = uuidv4();
     const result = await pool.query(
-      `INSERT INTO assets (id, asset_name, asset_tag, serial_number, category_id, purchase_date, purchase_cost, supplier_id, warranty_expiry, asset_condition, status, department_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `INSERT INTO assets (id, asset_name, asset_tag, serial_number, category_id, purchase_date, purchase_cost, supplier_id, warranty_expiry, asset_condition, status, department_id, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        RETURNING *`,
       [id, asset_name, asset_tag, serial_number, category_id, purchase_date, purchase_cost, supplier_id, warranty_expiry, asset_condition || "good", status || "available", department_id]
     );
