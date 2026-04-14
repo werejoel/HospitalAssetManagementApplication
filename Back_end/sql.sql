@@ -113,6 +113,7 @@ CREATE TABLE "asset_assignments" (
     "returned_date" TIMESTAMP(3),
     "status" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "asset_assignments_pkey" PRIMARY KEY ("id")
 );
@@ -125,6 +126,7 @@ CREATE TABLE "asset_disposals" (
     "reason" TEXT,
     "approved_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "asset_disposals_pkey" PRIMARY KEY ("id")
 );
@@ -138,6 +140,7 @@ CREATE TABLE "asset_movements" (
     "reason" TEXT,
     "moved_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "asset_movements_pkey" PRIMARY KEY ("id")
 );
