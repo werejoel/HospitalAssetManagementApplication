@@ -97,4 +97,37 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const verify = async (req, res) => {
+  try {
+    // The authenticateToken middleware has already validated the token
+    // and set req.user with the decoded token payload
+    const userId = req.user.id;
+    
+    // Fetch the current user data from the database
+    const result = await pool.query(
+      "SELECT user_id, full_name, email, username, phone_number, role_id FROM users WHERE user_id = $1 AND status = 'active'",
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: "User not found or inactive" });
+    }
+    
+    const user = result.rows[0];
+    res.json({
+      user: {
+        id: user.user_id,
+        full_name: user.full_name,
+        email: user.email,
+        username: user.username,
+        role: user.role_id,
+        phone_number: user.phone_number,
+      },
+    });
+  } catch (err) {
+    console.error("Verification error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { register, login, verify };

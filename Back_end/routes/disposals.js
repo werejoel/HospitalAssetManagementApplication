@@ -1,14 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { createCrudControllers } = require("../controllers/crudController");
+const { getAllDisposals, getDisposalById, createDisposal, updateDisposal, deleteDisposal } = require("../controllers/disposalsController");
 const { authenticateToken, authorizeRoles } = require("../middleware/auth");
 
-const disposalController = createCrudControllers("asset_disposals", ["asset_id", "disposal_date", "disposal_method", "reason", "approved_by"]);
-
-router.get("/", authenticateToken, disposalController.getAll);
-router.get("/:id", authenticateToken, disposalController.getById);
-router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager"), disposalController.create);
-router.put("/:id", authenticateToken, authorizeRoles("admin"), disposalController.update);
-router.delete("/:id", authenticateToken, authorizeRoles("admin"), disposalController.delete);
+router.get("/", authenticateToken, getAllDisposals);
+router.get("/:id", authenticateToken, getDisposalById);
+router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager"), createDisposal);
+router.put("/:id", authenticateToken, authorizeRoles("admin"), updateDisposal);
+router.delete("/:id", authenticateToken, authorizeRoles("admin"), deleteDisposal);
 
 module.exports = router;

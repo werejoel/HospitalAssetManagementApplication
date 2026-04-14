@@ -1,14 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { createCrudControllers } = require("../controllers/crudController");
+const { getAllMaintenance, getMaintenanceById, createMaintenance, updateMaintenance, deleteMaintenance } = require("../controllers/maintenanceController");
 const { authenticateToken, authorizeRoles } = require("../middleware/auth");
 
-const maintenanceController = createCrudControllers("maintenance_records", ["asset_id", "maintenance_date", "maintenance_type", "description", "cost", "technician_id", "status"]);
-
-router.get("/", authenticateToken, maintenanceController.getAll);
-router.get("/:id", authenticateToken, maintenanceController.getById);
-router.post("/", authenticateToken, authorizeRoles("admin", "technician"), maintenanceController.create);
-router.put("/:id", authenticateToken, authorizeRoles("admin", "technician"), maintenanceController.update);
-router.delete("/:id", authenticateToken, authorizeRoles("admin"), maintenanceController.delete);
+router.get("/", authenticateToken, getAllMaintenance);
+router.get("/:id", authenticateToken, getMaintenanceById);
+router.post("/", authenticateToken, authorizeRoles("admin", "technician"), createMaintenance);
+router.put("/:id", authenticateToken, authorizeRoles("admin", "technician"), updateMaintenance);
+router.delete("/:id", authenticateToken, authorizeRoles("admin"), deleteMaintenance);
 
 module.exports = router;
