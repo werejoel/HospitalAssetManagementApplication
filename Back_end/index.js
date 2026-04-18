@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-// Middleware  
+// Middleware
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -36,17 +36,22 @@ app.use("/api/disposals", disposalsRouter);
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "Backend is running", timestamp: new Date().toISOString() });
+  res.json({
+    status: "Backend server is running",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
+  res.status(404).json({ error: "Route not found try agin" });
 });
 
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✓ Server running on http://localhost:${PORT}`);
-  console.log(`✓ Database: ${process.env.DB_NAME} on ${process.env.DB_HOST}:${process.env.DB_PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(
+    `Database: ${process.env.DB_NAME} on ${process.env.DB_HOST}:${process.env.DB_PORT}`,
+  );
 });

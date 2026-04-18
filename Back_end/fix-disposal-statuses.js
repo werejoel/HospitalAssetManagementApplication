@@ -2,7 +2,7 @@ const pool = require("./db_config");
 
 async function fixDisposalAssetStatuses() {
   try {
-    console.log("🗑️ Fixing asset statuses for disposed assets...");
+    console.log("Fixing asset statuses for disposed assets...");
 
     // Get all assets that have disposal records
     const disposedAssets = await pool.query(`
@@ -10,13 +10,15 @@ async function fixDisposalAssetStatuses() {
       FROM asset_disposals ad
     `);
 
-    console.log(`Found ${disposedAssets.rows.length} assets with disposal records`);
+    console.log(
+      `Found ${disposedAssets.rows.length} assets with disposal records`,
+    );
 
     // Update these assets to 'disposed' status
     for (const record of disposedAssets.rows) {
       await pool.query(
         `UPDATE assets SET status = 'disposed', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
-        [record.asset_id]
+        [record.asset_id],
       );
       console.log(`Updated asset ${record.asset_id} to 'disposed'`);
     }
@@ -33,18 +35,22 @@ async function fixDisposalAssetStatuses() {
       )
     `);
 
-    console.log(`Found ${orphanedDisposedAssets.rows.length} assets that should not be disposed`);
+    console.log(
+      `Found ${orphanedDisposedAssets.rows.length} assets that should not be disposed`,
+    );
 
     // Update these assets back to 'available'
     for (const asset of orphanedDisposedAssets.rows) {
       await pool.query(
         `UPDATE assets SET status = 'available', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
-        [asset.id]
+        [asset.id],
       );
-      console.log(`Updated asset ${asset.id} (${asset.asset_name}) back to 'available'`);
+      console.log(
+        `Updated asset ${asset.id} (${asset.asset_name}) back to 'available'`,
+      );
     }
 
-    console.log("✅ Disposal asset status fix completed");
+    console.log("Disposal asset status fix completed");
   } catch (error) {
     console.error("Error fixing disposal asset statuses:", error);
   } finally {

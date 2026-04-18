@@ -2,6 +2,8 @@
 CREATE TYPE "AppRole" AS ENUM ('admin', 'technician', 'department_head', 'asset_manager', 'staff');
 CREATE TYPE "UserStatus" AS ENUM ('active', 'inactive', 'suspended');
 
+
+
 -- Create tables
 CREATE TABLE "users" (
     "user_id" TEXT NOT NULL,
@@ -152,7 +154,9 @@ CREATE TABLE "fault_reports" (
     "priority" TEXT,
     "report_date" TIMESTAMP(3) NOT NULL,
     "reported_by" TEXT,
+    "assigned_to" TEXT,
     "status" TEXT,
+    "resolution_notes" TEXT,
     "resolved_date" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -187,12 +191,15 @@ CREATE TABLE "audit_logs" (
     CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
 );
 
+
 -- Create indexes
 CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 CREATE UNIQUE INDEX "user_roles_user_id_role_key" ON "user_roles"("user_id", "role");
 CREATE UNIQUE INDEX "roles_role_name_key" ON "roles"("role_name");
 CREATE UNIQUE INDEX "assets_asset_tag_key" ON "assets"("asset_tag");
+
+
 
 -- Create foreign key constraints
 ALTER TABLE "users" ADD CONSTRAINT "users_department_id_fkey" FOREIGN KEY ("department_id") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -211,6 +218,8 @@ ALTER TABLE "asset_movements" ADD CONSTRAINT "asset_movements_to_department_id_f
 ALTER TABLE "fault_reports" ADD CONSTRAINT "fault_reports_asset_id_fkey" FOREIGN KEY ("asset_id") REFERENCES "assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "maintenance_records" ADD CONSTRAINT "maintenance_records_asset_id_fkey" FOREIGN KEY ("asset_id") REFERENCES "assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+
 
 -- Create triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()

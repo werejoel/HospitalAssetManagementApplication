@@ -11,12 +11,12 @@ const getLoginProfiles = async (req, res) => {
        LEFT JOIN roles r ON u.role_id = r.role_name
        LEFT JOIN departments d ON u.department_id = d.id
        WHERE u.status = 'active'
-       ORDER BY u.role_id, u.full_name`
+       ORDER BY u.role_id, u.full_name`,
     );
 
     // Group users by role and pick one representative for each role
     const profiles = {};
-    result.rows.forEach(user => {
+    result.rows.forEach((user) => {
       if (!profiles[user.role_id]) {
         profiles[user.role_id] = {
           id: user.role_id,
@@ -25,7 +25,7 @@ const getLoginProfiles = async (req, res) => {
           email: user.email,
           role: user.role_id,
           department: user.department_name,
-          full_name: user.full_name
+          full_name: user.full_name,
         };
       }
     });
@@ -39,11 +39,11 @@ const getLoginProfiles = async (req, res) => {
 // Helper function to get display name for roles
 const getRoleDisplayName = (role) => {
   const roleNames = {
-    'admin': 'Administrator',
-    'asset_manager': 'Asset Manager',
-    'technician': 'Technician',
-    'department_head': 'Department Head',
-    'staff': 'Staff'
+    admin: "Administrator",
+    asset_manager: "Asset Manager",
+    technician: "Technician",
+    department_head: "Department Head",
+    staff: "Staff",
   };
   return roleNames[role] || role;
 };
@@ -51,13 +51,13 @@ const getRoleDisplayName = (role) => {
 // Helper function to get icon for roles
 const getRoleIcon = (role) => {
   const roleIcons = {
-    'admin': '👨‍💼',
-    'asset_manager': '📊',
-    'technician': '🔧',
-    'department_head': '👨‍⚕️',
-    'staff': '👤'
+    admin: "👨‍💼",
+    asset_manager: "📊",
+    technician: "🔧",
+    department_head: "👨‍⚕️",
+    staff: "👤",
   };
-  return roleIcons[role] || '👤';
+  return roleIcons[role] || "👤";
 };
 
 // Get all users
@@ -67,7 +67,7 @@ const getUsers = async (req, res) => {
       `SELECT u.user_id, u.full_name, u.username, u.email, u.phone_number, u.role_id, u.department_id, u.status, d.department_name
        FROM users u
        LEFT JOIN departments d ON u.department_id = d.id
-       ORDER BY u.created_at DESC`
+       ORDER BY u.created_at DESC`,
     );
     res.json(result.rows);
   } catch (err) {
@@ -84,9 +84,10 @@ const getUserById = async (req, res) => {
        FROM users u
        LEFT JOIN departments d ON u.department_id = d.id
        WHERE u.user_id = $1`,
-      [id]
+      [id],
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "User not found" });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -95,15 +96,25 @@ const getUserById = async (req, res) => {
 
 // Create user (admin only)
 const createUser = async (req, res) => {
-  const { full_name, username, email, password, phone_number, role_id, department_id } = req.body;
+  const {
+    full_name,
+    username,
+    email,
+    password,
+    phone_number,
+    role_id,
+    department_id,
+  } = req.body;
   try {
     // Check if user already exists
     const userExists = await pool.query(
       "SELECT * FROM users WHERE email = $1 OR username = $2",
-      [email, username]
+      [email, username],
     );
     if (userExists.rows.length > 0) {
-      return res.status(400).json({ error: "User with this email or username already exists" });
+      return res
+        .status(400)
+        .json({ error: "User with this email or username already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password || "default123", 10);
@@ -113,10 +124,21 @@ const createUser = async (req, res) => {
       `INSERT INTO users (user_id, full_name, username, email, password, phone_number, role_id, department_id, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active', NOW(), NOW())
        RETURNING user_id, full_name, username, email, phone_number, role_id, department_id, status`,
-      [userId, full_name, username, email, hashedPassword, phone_number, role_id, department_id]
+      [
+        userId,
+        full_name,
+        username,
+        email,
+        hashedPassword,
+        phone_number,
+        role_id,
+        department_id,
+      ],
     );
 
-    res.status(201).json({ message: "User created successfully", user: result.rows[0] });
+    res
+      .status(201)
+      .json({ message: "User created successfully", user: result.rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -130,9 +152,10 @@ const updateUser = async (req, res) => {
     const result = await pool.query(
       `UPDATE users SET full_name = $1, phone_number = $2, department_id = $3, role_id = $4, updated_at = CURRENT_TIMESTAMP
        WHERE user_id = $5 RETURNING user_id, full_name, email, username, phone_number, role_id, department_id, status`,
-      [full_name, phone_number, department_id, role_id, id]
+      [full_name, phone_number, department_id, role_id, id],
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "User not found" });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -146,9 +169,10 @@ const deactivateUser = async (req, res) => {
     const result = await pool.query(
       `UPDATE users SET status = 'inactive', updated_at = CURRENT_TIMESTAMP
        WHERE user_id = $1 RETURNING user_id, full_name, email, username, status`,
-      [id]
+      [id],
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "User not found" });
     res.json({ message: "User deactivated", user: result.rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -161,13 +185,22 @@ const deleteUser = async (req, res) => {
   try {
     const result = await pool.query(
       `DELETE FROM users WHERE user_id = $1 RETURNING user_id, full_name, email`,
-      [id]
+      [id],
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "User not found" });
     res.json({ message: "User deleted successfully", user: result.rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-module.exports = { getUsers, getUserById, createUser, updateUser, deactivateUser, deleteUser, getLoginProfiles };
+module.exports = {
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deactivateUser,
+  deleteUser,
+  getLoginProfiles,
+};

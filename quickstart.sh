@@ -7,27 +7,27 @@ echo "=========================================="
 echo ""
 
 # Check prerequisites
-echo "🔍 Checking prerequisites..."
+echo " Checking prerequisites..."
 
 # Check Node.js
 if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Please install Node.js v14 or higher."
+    echo "Node.js is not installed. Please install Node.js v14 or higher."
     exit 1
 fi
 
-echo "✓ Node.js $(node --version)"
+echo " Node.js $(node --version)"
 
 # Check npm
 if ! command -v npm &> /dev/null; then
-    echo "❌ npm is not installed. Please install npm."
+    echo " npm is not installed. Please install npm."
     exit 1
 fi
 
-echo "✓ npm $(npm --version)"
+echo " npm $(npm --version)"
 
 # Check PostgreSQL
 if ! command -v psql &> /dev/null; then
-    echo "⚠️  PostgreSQL is not in PATH. Please ensure PostgreSQL is installed and in your PATH."
+    echo "PostgreSQL is not in PATH. Please ensure PostgreSQL is installed and in your PATH."
     read -p "Continue anyway? (y/n) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -47,7 +47,7 @@ echo "📦 Installing Backend packages..."
 npm install
 
 if [ $? -ne 0 ]; then
-    echo "❌ Backend installation failed"
+    echo "Backend installation failed"
     exit 1
 fi
 
@@ -56,7 +56,7 @@ echo "✓ Backend dependencies installed"
 # Check for .env file
 if [ ! -f .env ]; then
     echo ""
-    echo "⚠️  .env file not found in Back_end/"
+    echo ".env file not found in Back_end/"
     echo "Please create .env file with the following content:"
     echo ""
     echo "DB_HOST=localhost"
@@ -79,15 +79,15 @@ echo "Installing Frontend Dependencies"
 echo "=========================================="
 
 cd Front_end
-echo "📦 Installing Frontend packages..."
+echo "Installing Frontend packages..."
 npm install
 
 if [ $? -ne 0 ]; then
-    echo "❌ Frontend installation failed"
+    echo "Frontend installation failed"
     exit 1
 fi
 
-echo "✓ Frontend dependencies installed"
+echo "Frontend dependencies installed"
 
 cd ..
 
@@ -96,7 +96,7 @@ echo "=========================================="
 echo "Setup Complete!"
 echo "=========================================="
 echo ""
-echo "📋 Next Steps:"
+echo "Next Steps:"
 echo ""
 echo "1. Ensure PostgreSQL is running"
 echo ""
@@ -118,10 +118,10 @@ echo "   npm run dev"
 echo ""
 echo "6. Open http://localhost:5173 in your browser"
 echo ""
-echo "📝 Test Credentials (after seeding):"
+echo "Test Credentials (after seeding):"
 echo "   Admin: admin / admin123"
 echo "   Manager: asset_manager / user123"
 echo "   Technician: technician1 / user123"
 echo ""
-echo "📚 For detailed setup guide, see: SETUP_GUIDE.md"
+echo "For detailed setup guide, see: SETUP_GUIDE.md"
 echo ""
