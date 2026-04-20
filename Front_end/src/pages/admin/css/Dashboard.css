@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+/*Root tokens */
+:root {
+  --dash-teal:        #0d6e6e;
+  --dash-teal-light:  #11918f;
+  --dash-teal-dim:    rgba(13, 110, 110, 0.08);
+  --dash-teal-glow:   rgba(13, 110, 110, 0.18);
+  --dash-amber:       #f59e0b;
+  --dash-amber-dim:   rgba(245, 158, 11, 0.1);
+  --dash-emerald:     #059669;
+  --dash-emerald-dim: rgba(5, 150, 105, 0.1);
+  --dash-rose:        #e11d48;
+  --dash-rose-dim:    rgba(225, 29, 72, 0.08);
+
+  --dash-bg:          #f0f4f5;
+  --dash-surface:     #ffffff;
+  --dash-surface-2:   #f7fafa;
+  --dash-border:      rgba(13, 110, 110, 0.12);
+  --dash-border-hard: rgba(13, 110, 110, 0.22);
+
+  --dash-text-head:   #0b2626;
+  --dash-text-body:   #2d4a4a;
+  --dash-text-muted:  #e11d48;
+  --dash-text-faint:  #a3c0c0;
+
+  --dash-radius-sm:   0.5rem;
+  --dash-radius:      1rem;
+  --dash-radius-lg:   1.5rem;
+
+  --dash-shadow-sm:   0 1px 3px rgba(13,110,110,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --dash-shadow:      0 4px 16px rgba(13,110,110,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  --dash-shadow-lg:   0 12px 40px rgba(13,110,110,0.12), 0 4px 12px rgba(0,0,0,0.06);
+
+  --dash-font-head: 'Syne', sans-serif;
+  --dash-font-body: 'DM Sans', sans-serif;
+}
+
+/* Page shell*/
+.dashboard-page {
+  padding: 1rem;
+  min-height: 100vh;
+  background-color: var(--dash-bg);
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(13,110,110,0.09) 0%, transparent 70%),
+    url("data:image/svg+xml,%3Csvg width='52' height='52' viewBox='0 0 52 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zm26 0h1v1h-1zM0 26h1v1H0zm26 26h1v1h-1z' fill='%230d6e6e' fill-opacity='0.04'/%3E%3C/svg%3E");
+  font-family: var(--dash-font-body);
+  color: var(--dash-text-body);
+}
+
+@media (min-width: 640px) {
+  .dashboard-page {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .dashboard-page {
+    padding: 2rem 2rem 4rem;
+  }
+}
+
+/*Stats grids */
+.dashboard-stats-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Charts grid*/
+.dashboard-charts-grid {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 1024px) {
+  .dashboard-charts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/*Card */
+.dashboard-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: var(--dash-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--dash-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  animation: card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dashboard-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--dash-teal-dim) 0%, transparent 55%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover {
+  box-shadow: var(--dash-shadow-lg);
+  border-color: var(--dash-border-hard);
+}
+
+.dashboard-card:hover::before {
+  opacity: 1;
+}
+
+/* Decorative accent line */
+.dashboard-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--dash-teal) 0%, var(--dash-teal-light) 50%, transparent 100%);
+  border-radius: 0 0 2px 2px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover::after {
+  opacity: 1;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger children */
+.dashboard-stats-grid .dashboard-card:nth-child(1),
+.dashboard-charts-grid .dashboard-card:nth-child(1) { animation-delay: 0.05s; }
+.dashboard-stats-grid .dashboard-card:nth-child(2),
+.dashboard-charts-grid .dashboard-card:nth-child(2) { animation-delay: 0.10s; }
+.dashboard-stats-grid .dashboard-card:nth-child(3) { animation-delay: 0.15s; }
+.dashboard-stats-grid .dashboard-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* Card heading*/
+.dashboard-card-heading {
+  font-family: var(--dash-font-head);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--dash-text-head);
+  letter-spacing: 0.01em;
+  margin-bottom: 1.25rem;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+/*Table*/
+.dashboard-table {
+  width: 100%;
+  font-size: 0.855rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--dash-font-body);
+}
+
+.dashboard-table thead tr {
+  border-bottom: 1px solid var(--dash-border-hard);
+}
+
+.dashboard-table th {
+  text-align: left;
+  padding: 0.6rem 0.875rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--dash-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: var(--dash-font-head);
+  white-space: nowrap;
+  background: var(--dash-surface-2);
+}
+
+.dashboard-table th:first-child {
+  border-radius: var(--dash-radius-sm) 0 0 var(--dash-radius-sm);
+}
+.dashboard-table th:last-child {
+  border-radius: 0 var(--dash-radius-sm) var(--dash-radius-sm) 0;
+}
+
+.dashboard-table td {
+  padding: 0.8rem 0.875rem;
+  color: var(--dash-text-body);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.dashboard-table td:first-child {
+  font-weight: 600;
+  color: var(--dash-text-head);
+}
+
+.dashboard-table tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.dashboard-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dashboard-table tbody tr:hover td {
+  background-color: var(--dash-teal-dim);
+}
+
+.dashboard-table tbody tr:hover td:first-child {
+  color: var(--dash-teal);
+}

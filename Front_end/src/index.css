@@ -1,0 +1,79 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 195 20% 97%;
+    --foreground: 200 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 25% 12%;
+
+    --primary: 174 62% 32%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 195 15% 93%;
+    --secondary-foreground: 200 25% 12%;
+
+    --muted: 195 15% 93%;
+    --muted-foreground: 200 10% 46%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 195 15% 88%;
+    --input: 195 15% 88%;
+    --ring: 174 62% 32%;
+
+    --radius: 0.625rem;
+
+    --sidebar-background: 180 79% 24%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 174 62% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 180 70% 35%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 180 75% 28%;
+    --sidebar-ring: 174 62% 45%;
+    --sidebar-muted: 0 0% 100%;
+
+    --success: 152 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: "Inter", sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
