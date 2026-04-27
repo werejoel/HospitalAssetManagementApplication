@@ -18,6 +18,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -73,6 +74,8 @@ const initialMaintenanceForm = {
 };
 
 export default function Maintenance() {
+  const { isRefreshing, refreshData } = useRefreshData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMaintenance, setEditingMaintenance] = useState<any>(null);
@@ -80,9 +83,6 @@ export default function Maintenance() {
     initialMaintenanceForm,
   );
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const queryClient = useQueryClient();
 
   const {
     data: maintenanceRecords = [],
@@ -137,12 +137,8 @@ export default function Maintenance() {
   });
 
   // Helper functions
-  const refreshData = () => {
-    setIsRefreshing(true);
-    queryClient.invalidateQueries({ queryKey: ["maintenance"] });
-    queryClient.invalidateQueries({ queryKey: ["assets"] });
-    queryClient.invalidateQueries({ queryKey: ["users"] });
-    setTimeout(() => setIsRefreshing(false), 1000);
+  const handleRefresh = () => {
+    refreshData(["maintenance", "assets", "users"]);
   };
 
   const filteredRecords = useMemo(() => {
@@ -309,7 +305,7 @@ export default function Maintenance() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={refreshData}
+            onClick={handleRefresh}
             disabled={isRefreshing}
           >
             {isRefreshing ? "Refreshing…" : "Refresh"}

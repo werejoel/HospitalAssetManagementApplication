@@ -11,6 +11,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import {
   Dialog,
   DialogContent,
@@ -56,13 +57,12 @@ const initialAssignmentForm = {
 };
 
 const Assignments = () => {
+  const { isRefreshing, refreshData } = useRefreshData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<any>(null);
   const [assignmentForm, setAssignmentForm] = useState(initialAssignmentForm);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const queryClient = useQueryClient();
 
   const {
     data: assignments = [],
@@ -287,24 +287,8 @@ const Assignments = () => {
     URL.revokeObjectURL(url);
   };
 
-  const refreshData = async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["assignments"] }),
-        queryClient.invalidateQueries({ queryKey: ["assets"] }),
-        queryClient.invalidateQueries({ queryKey: ["users"] }),
-        queryClient.invalidateQueries({ queryKey: ["departments"] }),
-      ]);
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["assignments"] }),
-        queryClient.refetchQueries({ queryKey: ["assets"] }),
-        queryClient.refetchQueries({ queryKey: ["users"] }),
-        queryClient.refetchQueries({ queryKey: ["departments"] }),
-      ]);
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleRefresh = () => {
+    refreshData(["assignments", "assets", "users", "departments"]);
   };
 
   if (isLoading) {
@@ -344,7 +328,7 @@ const Assignments = () => {
           <Button
             variant="secondary"
             size="sm"
-            onClick={refreshData}
+            onClick={handleRefresh}
             disabled={isRefreshing}
           >
             {isRefreshing ? "Refreshing…" : "Refresh"}

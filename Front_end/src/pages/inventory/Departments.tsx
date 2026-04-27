@@ -15,6 +15,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import {
   Dialog,
   DialogContent,
@@ -54,13 +55,12 @@ const initialDepartmentForm = {
 };
 
 export default function Departments() {
+  const { isRefreshing, refreshData } = useRefreshData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<any>(null);
   const [departmentForm, setDepartmentForm] = useState(initialDepartmentForm);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const queryClient = useQueryClient();
 
   const {
     data: departments = [],
@@ -217,20 +217,8 @@ export default function Departments() {
     URL.revokeObjectURL(url);
   };
 
-  const refreshData = async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["departments"] }),
-        queryClient.invalidateQueries({ queryKey: ["assets"] }),
-      ]);
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["departments"] }),
-        queryClient.refetchQueries({ queryKey: ["assets"] }),
-      ]);
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleRefresh = () => {
+    refreshData(["departments", "assets"]);
   };
 
   if (isLoading) {
@@ -270,7 +258,7 @@ export default function Departments() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={refreshData}
+            onClick={handleRefresh}
             disabled={isRefreshing}
             className="gap-2"
           >

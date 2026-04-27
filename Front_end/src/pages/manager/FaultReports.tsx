@@ -17,6 +17,7 @@ import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import {
   Dialog,
   DialogContent,
@@ -73,14 +74,13 @@ const initialFaultForm = {
 };
 
 export default function FaultReports() {
+  const { isRefreshing, refreshData } = useRefreshData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingFault, setEditingFault] = useState<any>(null);
   const [faultForm, setFaultForm] = useState(initialFaultForm);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const queryClient = useQueryClient();
 
   const {
     data: faultReports = [],
@@ -135,12 +135,8 @@ export default function FaultReports() {
   });
 
   // Helper functions
-  const refreshData = () => {
-    setIsRefreshing(true);
-    queryClient.invalidateQueries({ queryKey: ["faultReports"] });
-    queryClient.invalidateQueries({ queryKey: ["assets"] });
-    queryClient.invalidateQueries({ queryKey: ["users"] });
-    setTimeout(() => setIsRefreshing(false), 1000);
+  const handleRefresh = () => {
+    refreshData(["faultReports", "assets", "users"]);
   };
 
   const filteredReports = useMemo(() => {
@@ -330,7 +326,7 @@ export default function FaultReports() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={refreshData}
+            onClick={handleRefresh}
             disabled={isRefreshing}
           >
             {isRefreshing ? "Refreshing…" : "Refresh"}

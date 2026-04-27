@@ -4,6 +4,7 @@ import { Plus, Trash2, Edit, Delete, Search, Download } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import {
   Dialog,
   DialogContent,
@@ -57,13 +58,12 @@ const initialDisposalForm = {
 };
 
 export default function Disposals() {
+  const { isRefreshing, refreshData } = useRefreshData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDisposal, setEditingDisposal] = useState<any>(null);
   const [disposalForm, setDisposalForm] = useState(initialDisposalForm);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const queryClient = useQueryClient();
 
   const {
     data: disposals = [],
@@ -216,20 +216,8 @@ export default function Disposals() {
     URL.revokeObjectURL(url);
   };
 
-  const refreshData = async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["disposals"] }),
-        queryClient.invalidateQueries({ queryKey: ["assets"] }),
-      ]);
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["disposals"] }),
-        queryClient.refetchQueries({ queryKey: ["assets"] }),
-      ]);
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleRefresh = () => {
+    refreshData(["disposals", "assets"]);
   };
 
   if (isLoading) {
@@ -269,7 +257,7 @@ export default function Disposals() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={refreshData}
+            onClick={handleRefresh}
             disabled={isRefreshing}
           >
             {isRefreshing ? "Refreshing…" : "Refresh"}

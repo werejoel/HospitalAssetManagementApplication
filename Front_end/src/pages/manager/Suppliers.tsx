@@ -15,6 +15,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import {
   Dialog,
   DialogContent,
@@ -55,13 +56,12 @@ const initialSupplierForm = {
 };
 
 export default function Suppliers() {
+  const { isRefreshing, refreshData } = useRefreshData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<any>(null);
   const [supplierForm, setSupplierForm] = useState(initialSupplierForm);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const queryClient = useQueryClient();
 
   const {
     data: suppliers = [],
@@ -195,14 +195,8 @@ export default function Suppliers() {
     URL.revokeObjectURL(url);
   };
 
-  const refreshData = async () => {
-    setIsRefreshing(true);
-    try {
-      await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      await queryClient.refetchQueries({ queryKey: ["suppliers"] });
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleRefresh = () => {
+    refreshData(["suppliers"]);
   };
 
   if (isLoading) {
@@ -242,7 +236,7 @@ export default function Suppliers() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={refreshData}
+            onClick={handleRefresh}
             disabled={isRefreshing}
             className="gap-2"
           >

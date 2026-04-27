@@ -11,6 +11,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import {
   Dialog,
   DialogContent,
@@ -57,14 +58,13 @@ const initialMovementForm = {
 };
 
 export default function Movements() {
+  const { isRefreshing, refreshData } = useRefreshData();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMovement, setEditingMovement] = useState<any>(null);
   const [movementForm, setMovementForm] = useState(initialMovementForm);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const queryClient = useQueryClient();
 
   const {
     data: movements = [],
@@ -288,22 +288,8 @@ export default function Movements() {
     URL.revokeObjectURL(url);
   };
 
-  const refreshData = async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["movements"] }),
-        queryClient.invalidateQueries({ queryKey: ["assets"] }),
-        queryClient.invalidateQueries({ queryKey: ["departments"] }),
-      ]);
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["movements"] }),
-        queryClient.refetchQueries({ queryKey: ["assets"] }),
-        queryClient.refetchQueries({ queryKey: ["departments"] }),
-      ]);
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleRefresh = () => {
+    refreshData(["movements", "assets", "departments"]);
   };
 
   if (isLoading) {
@@ -343,7 +329,7 @@ export default function Movements() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={refreshData}
+            onClick={handleRefresh}
             disabled={isRefreshing}
           >
             {isRefreshing ? "Refreshing…" : "Refresh"}

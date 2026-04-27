@@ -33,7 +33,7 @@ export const navItems: NavItem[] = [
     path: "/",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "asset_manager", "technician", "department_head", "staff"],
+    roles: ["admin", "asset_manager"],
     section: "Overview",
   },
   {
@@ -125,7 +125,7 @@ export const getNavItemsForRole = (role: Role | string) => {
 };
 
 export const routePermissions: Record<string, Role[]> = {
-  "/": ["admin", "asset_manager", "technician", "department_head", "staff"],
+  "/": ["admin", "asset_manager"],
   "/assets": ["admin", "asset_manager", "technician", "department_head"],
   "/departments": ["admin", "department_head"],
   "/suppliers": ["admin", "asset_manager"],

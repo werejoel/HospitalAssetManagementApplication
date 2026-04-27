@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Package,
   Activity,
@@ -25,6 +25,7 @@ import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import {
   assetsAPI,
   departmentsAPI,
@@ -59,13 +60,12 @@ const COLORS = [
 
 //Main Function
 const Dashboard = () => {
-  const queryClient = useQueryClient();
+  const { isRefreshing, refreshData } = useRefreshData();
   const [search, setSearch] = useState("");
   const [generalSearch, setGeneralSearch] = useState("");
   const [filterMode, setFilterMode] = useState<
     "all" | "critical" | "maintenance" | "available"
   >("all");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const {
     data: assets = [],
     isLoading: assetsLoading,
@@ -309,42 +309,8 @@ const Dashboard = () => {
   }, [filteredAssets]);
 
   //Refresh Function
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      // Invalidate all queries to clear cache and force fresh data
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["assets"] }),
-        queryClient.invalidateQueries({ queryKey: ["departments"] }),
-        queryClient.invalidateQueries({ queryKey: ["assetCategories"] }),
-        queryClient.invalidateQueries({ queryKey: ["faultReports"] }),
-        queryClient.invalidateQueries({ queryKey: ["assignments"] }),
-        queryClient.invalidateQueries({ queryKey: ["suppliers"] }),
-        queryClient.invalidateQueries({ queryKey: ["maintenance"] }),
-        queryClient.invalidateQueries({ queryKey: ["movements"] }),
-        queryClient.invalidateQueries({ queryKey: ["disposals"] }),
-      ]);
-
-      // Refetch all queries to get fresh data
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["assets"] }),
-        queryClient.refetchQueries({ queryKey: ["departments"] }),
-        queryClient.refetchQueries({ queryKey: ["assetCategories"] }),
-        queryClient.refetchQueries({ queryKey: ["faultReports"] }),
-        queryClient.refetchQueries({ queryKey: ["assignments"] }),
-        queryClient.refetchQueries({ queryKey: ["suppliers"] }),
-        queryClient.refetchQueries({ queryKey: ["maintenance"] }),
-        queryClient.refetchQueries({ queryKey: ["movements"] }),
-        queryClient.refetchQueries({ queryKey: ["disposals"] }),
-      ]);
-
-      // Keep spinning for visual feedback
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleRefresh = () => {
+    refreshData();
   };
 
   const handleExport = () => {
