@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { Plus, Search, Filter, Edit, Trash2, Eye } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
@@ -73,6 +74,8 @@ const assetStatuses = [
 ];
 
 export default function Assets() {
+  const { user } = useAuth();
+  const isStaff = user?.role === "staff";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -298,11 +301,13 @@ export default function Assets() {
             }
           }}
         >
-          <DialogTrigger asChild>
-            <Button className="gap-2" onClick={openCreateDialog}>
-              <Plus className="w-4 h-4" /> Add Asset
-            </Button>
-          </DialogTrigger>
+            {!isStaff && (
+              <DialogTrigger asChild>
+                <Button className="gap-2" onClick={openCreateDialog}>
+                  <Plus className="w-4 h-4" /> Add Asset
+                </Button>
+              </DialogTrigger>
+            )}
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
@@ -636,7 +641,7 @@ export default function Assets() {
                 <div>
                   <p className="text-sm text-muted-foreground">Purchase Cost</p>
                   <p className="font-medium">
-                    UGX {Number(selectedAsset.purchase_cost).toLocaleString()}
+                    UGX {Number(selectedAsset.purchase_cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <div>
@@ -774,7 +779,7 @@ export default function Assets() {
                         <StatusBadge status={a.status} />
                       </td>
                       <td className="py-3 px-4 text-right font-medium text-emerald-700">
-                        UGX {Number(a.purchase_cost).toLocaleString()}
+                        UGX {Number(a.purchase_cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="inline-flex items-center justify-end gap-2">
@@ -787,47 +792,51 @@ export default function Assets() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleEdit(a)}
-                            aria-label="Edit asset"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
+                          {!isStaff && (
+                            <>
                               <Button
-                                variant="destructive"
+                                variant="secondary"
                                 size="sm"
                                 className="h-8 w-8 p-0"
-                                aria-label="Delete asset"
+                                onClick={() => handleEdit(a)}
+                                aria-label="Edit asset"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Edit className="w-4 h-4" />
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Delete Asset
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "
-                                  {a.asset_name}"? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(a.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    aria-label="Delete asset"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Delete Asset
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "
+                                      {a.asset_name}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(a.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

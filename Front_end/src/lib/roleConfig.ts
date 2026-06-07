@@ -33,14 +33,14 @@ export const navItems: NavItem[] = [
     path: "/",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "asset_manager"],
+    roles: ["admin", "asset_manager", "staff"],
     section: "Overview",
   },
   {
     path: "/assets",
     label: "Assets",
     icon: Package,
-    roles: ["admin", "asset_manager", "technician", "department_head"],
+    roles: ["admin", "asset_manager", "technician", "department_head", "staff"],
     section: "Inventory",
   },
   {
@@ -61,14 +61,14 @@ export const navItems: NavItem[] = [
     path: "/maintenance",
     label: "Maintenance",
     icon: Wrench,
-    roles: ["admin", "asset_manager", "technician"],
+    roles: ["admin", "asset_manager", "technician", "staff"],
     section: "Service",
   },
   {
     path: "/faults",
     label: "Fault Reports",
     icon: AlertTriangle,
-    roles: ["admin", "asset_manager", "technician"],
+    roles: ["admin", "asset_manager", "technician", "staff"],
     section: "Service",
   },
   {
@@ -125,12 +125,12 @@ export const getNavItemsForRole = (role: Role | string) => {
 };
 
 export const routePermissions: Record<string, Role[]> = {
-  "/": ["admin", "asset_manager"],
-  "/assets": ["admin", "asset_manager", "technician", "department_head"],
+  "/": ["admin", "asset_manager", "staff"],
+  "/assets": ["admin", "asset_manager", "technician", "department_head", "staff"],
+  "/maintenance": ["admin", "asset_manager", "technician", "staff"],
+  "/faults": ["admin", "asset_manager", "technician", "staff"],
   "/departments": ["admin", "department_head"],
   "/suppliers": ["admin", "asset_manager"],
-  "/maintenance": ["admin", "asset_manager", "technician"],
-  "/faults": ["admin", "asset_manager", "technician"],
   "/assignments": ["admin", "asset_manager", "department_head"],
   "/movements": ["admin", "asset_manager"],
   "/disposals": ["admin", "asset_manager"],

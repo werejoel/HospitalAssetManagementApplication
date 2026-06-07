@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -74,6 +75,8 @@ const initialMaintenanceForm = {
 };
 
 export default function Maintenance() {
+  const { user } = useAuth();
+  const isStaff = user?.role === "staff";
   const { isRefreshing, refreshData } = useRefreshData();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -313,9 +316,11 @@ export default function Maintenance() {
           <Button variant="outline" size="sm" onClick={handleExportExcel}>
             <Download className="w-4 h-4" /> Export
           </Button>
-          <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="w-4 h-4" /> New Record
-          </Button>
+          {!isStaff && (
+            <Button size="sm" onClick={handleOpenCreate}>
+              <Plus className="w-4 h-4" /> New Record
+            </Button>
+          )}
         </div>
       </PageHeader>
 
@@ -341,7 +346,7 @@ export default function Maintenance() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              UGX {analytics.totalCost.toLocaleString()}
+              UGX {analytics.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <p className="text-xs text-muted-foreground">
               Maintenance expenses
@@ -456,7 +461,7 @@ export default function Maintenance() {
                     {r.description}
                   </TableCell>
                   <TableCell className="font-medium">
-                    UGX {Number(r.cost).toLocaleString()}
+                    UGX {Number(r.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell>{technician?.username || "Unassigned"}</TableCell>
                   <TableCell>
@@ -478,40 +483,44 @@ export default function Maintenance() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleOpenEdit(r)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash2 className="w-4 h-4" />
+                      {!isStaff && (
+                        <>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleOpenEdit(r)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Edit className="w-4 h-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Delete Maintenance Record
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this maintenance
-                              record? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteMaintenance(r.id)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Maintenance Record
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this maintenance
+                                  record? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteMaintenance(r.id)}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

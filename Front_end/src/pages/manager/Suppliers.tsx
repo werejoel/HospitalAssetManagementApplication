@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -56,6 +57,8 @@ const initialSupplierForm = {
 };
 
 export default function Suppliers() {
+  const { user } = useAuth();
+  const isStaff = user?.role === "staff";
   const { isRefreshing, refreshData } = useRefreshData();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -253,9 +256,11 @@ export default function Suppliers() {
           >
             <Download className="w-4 h-4" /> Export CSV
           </Button>
-          <Button size="sm" onClick={handleOpenCreate} className="gap-2">
-            <Plus className="w-4 h-4" /> New Supplier
-          </Button>
+          {!isStaff && (
+            <Button size="sm" onClick={handleOpenCreate} className="gap-2">
+              <Plus className="w-4 h-4" /> New Supplier
+            </Button>
+          )}
         </div>
       </PageHeader>
 
@@ -408,47 +413,51 @@ export default function Suppliers() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenEdit(supplier)}
-                        className="h-9 w-9 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                      {!isStaff && (
+                        <>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-9 w-9 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleOpenEdit(supplier)}
+                            className="h-9 w-9 p-0"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Supplier</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to permanently delete{" "}
-                              <span className="font-medium">
-                                "{supplier.supplier_name}"
-                              </span>
-                              ? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteSupplier(supplier.id)}
-                              className="bg-destructive hover:bg-destructive/90"
-                            >
-                              Delete Supplier
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 w-9 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Supplier</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to permanently delete {" "}
+                                  <span className="font-medium">
+                                    "{supplier.supplier_name}"
+                                  </span>
+                                  ? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteSupplier(supplier.id)}
+                                  className="bg-destructive hover:bg-destructive/90"
+                                >
+                                  Delete Supplier
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

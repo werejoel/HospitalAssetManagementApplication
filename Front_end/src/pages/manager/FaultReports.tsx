@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -74,6 +75,8 @@ const initialFaultForm = {
 };
 
 export default function FaultReports() {
+  const { user } = useAuth();
+  const isStaff = user?.role === "staff";
   const { isRefreshing, refreshData } = useRefreshData();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -334,9 +337,11 @@ export default function FaultReports() {
           <Button variant="outline" size="sm" onClick={handleExportExcel}>
             <Download className="w-4 h-4" /> Export
           </Button>
-          <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="w-4 h-4" /> Report Fault
-          </Button>
+          {!isStaff && (
+            <Button size="sm" onClick={handleOpenCreate}>
+              <Plus className="w-4 h-4" /> Report Fault
+            </Button>
+          )}
         </div>
       </PageHeader>
 
@@ -531,40 +536,44 @@ export default function FaultReports() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleOpenEdit(r)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash2 className="w-4 h-4" />
+                      {!isStaff && (
+                        <>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleOpenEdit(r)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Edit className="w-4 h-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Delete Fault Report
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this fault report?
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteFault(r.id)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Fault Report
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this fault report?
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteFault(r.id)}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

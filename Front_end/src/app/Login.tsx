@@ -131,13 +131,13 @@ const Login = () => {
             <Activity className="w-10 h-10" />
           </div>
 
-          <h1 className="login-brand-title">MRRH Asset System</h1>
+          <h1 className="login-brand-title">MRRH AMIS</h1>
           <p className="login-brand-sub">
-            Mbale Regional Referral Hospital
-            <br />
-            Asset Information
-            <br />
-            Management System
+            Mbale Regional Referral Hospital Asset Management Information System
+          </p>
+          <p className="login-brand-sub">
+          To improve asset tracking, maintenace management &
+          automated reporting at Mbale Regional Referral Hospital
           </p>
 
           {/* Stats row */}
@@ -176,7 +176,7 @@ const Login = () => {
 
           <h2 className="login-heading">Your Welcome!</h2>
           <p className="login-subheading">
-            Sign in to your account to continue.......
+            Sign in to access your account    ....
           </p>
 
           {/* Profile Selection */}

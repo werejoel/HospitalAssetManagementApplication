@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -58,6 +59,8 @@ const initialMovementForm = {
 };
 
 export default function Movements() {
+  const { user } = useAuth();
+  const isStaff = user?.role === "staff";
   const { isRefreshing, refreshData } = useRefreshData();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -337,9 +340,11 @@ export default function Movements() {
           <Button variant="outline" size="sm" onClick={handleExportExcel}>
             <Download className="w-4 h-4" /> Export
           </Button>
-          <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="w-4 h-4" /> New Movement
-          </Button>
+          {!isStaff && (
+            <Button size="sm" onClick={handleOpenCreate}>
+              <Plus className="w-4 h-4" /> New Movement
+            </Button>
+          )}
         </div>
       </PageHeader>
 
@@ -618,39 +623,43 @@ export default function Movements() {
                     <TableCell>{movement.movement_date || "—"}</TableCell>
                     <TableCell>{movement.reason || "—"}</TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenEdit(movement)}
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash2 className="w-4 h-4" />
-                            Delete
+                      {!isStaff && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenEdit(movement)}
+                          >
+                            <Edit className="w-4 h-4" />
+                            Edit
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete movement</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this movement
-                              record? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteMovement(movement.id)}
-                            >
-                              Confirm
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete movement</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this movement
+                                  record? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteMovement(movement.id)}
+                                >
+                                  Confirm
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

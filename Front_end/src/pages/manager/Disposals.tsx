@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Edit, Delete, Search, Download } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -58,6 +59,8 @@ const initialDisposalForm = {
 };
 
 export default function Disposals() {
+  const { user } = useAuth();
+  const isStaff = user?.role === "staff";
   const { isRefreshing, refreshData } = useRefreshData();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -265,9 +268,11 @@ export default function Disposals() {
           <Button variant="outline" size="sm" onClick={handleExportExcel}>
             <Download className="w-4 h-4" /> Export
           </Button>
-          <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="w-4 h-4" /> New Disposal
-          </Button>
+          {!isStaff && (
+            <Button size="sm" onClick={handleOpenCreate}>
+              <Plus className="w-4 h-4" /> New Disposal
+            </Button>
+          )}
         </div>
       </PageHeader>
 
@@ -481,39 +486,43 @@ export default function Disposals() {
                     <TableCell>{disposal.disposal_date || "—"}</TableCell>
                     <TableCell>{disposal.disposal_method || "—"}</TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenEdit(disposal)}
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Delete className="w-4 h-4" />
-                            Delete
+                      {!isStaff && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenEdit(disposal)}
+                          >
+                            <Edit className="w-4 h-4" />
+                            Edit
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete disposal</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this disposal
-                              record? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteDisposal(disposal.id)}
-                            >
-                              Confirm
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Delete className="w-4 h-4" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete disposal</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this disposal
+                                  record? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteDisposal(disposal.id)}
+                                >
+                                  Confirm
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

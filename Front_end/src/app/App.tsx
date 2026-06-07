@@ -15,6 +15,10 @@ import Movements from "@/pages/manager/Movements";
 import Suppliers from "@/pages/manager/Suppliers";
 import UsersPage from "@/pages/admin/UsersPage";
 import Disposals from "@/pages/manager/Disposals";
+import StaffDashboard from "@/pages/staff/Dashboard";
+import StaffAssets from "@/pages/staff/Assets";
+import StaffMaintenance from "@/pages/staff/Maintenance";
+import StaffFaultReports from "@/pages/staff/FaultReports";
 import Login from "@/app/Login";
 import Signup from "@/app/Signup";
 import RequireAuth from "@/components/RequireAuth";
@@ -25,6 +29,23 @@ import NotFound from "@/app/NotFound";
 
 const queryClient = new QueryClient();
 
+const AssetsRouter = () => {
+  const { user } = useAuth();
+  if (!user) return null;
+  return user.role === "staff" ? <StaffAssets /> : <Assets />;
+};
+
+const MaintenanceRouter = () => {
+  const { user } = useAuth();
+  if (!user) return null;
+  return user.role === "staff" ? <StaffMaintenance /> : <Maintenance />;
+};
+
+const FaultReportsRouter = () => {
+  const { user } = useAuth();
+  if (!user) return null;
+  return user.role === "staff" ? <StaffFaultReports /> : <FaultReports />;
+};
 const DashboardRouter = () => {
   const { user } = useAuth();
 
@@ -32,7 +53,15 @@ const DashboardRouter = () => {
     return null;
   }
 
-  return user.role === "admin" ? <Dashboard /> : <ManagerDashboard />;
+  if (user.role === "admin") {
+    return <Dashboard />;
+  }
+
+  if (user.role === "staff") {
+    return <StaffDashboard />;
+  }
+
+  return <ManagerDashboard />;
 };
 
 const App = () => (
@@ -64,7 +93,7 @@ const App = () => (
                 path="/assets"
                 element={
                   <RequireRole allowedRoles={routePermissions["/assets"]}>
-                    <Assets />
+                    <AssetsRouter />
                   </RequireRole>
                 }
               />
@@ -80,7 +109,7 @@ const App = () => (
                 path="/maintenance"
                 element={
                   <RequireRole allowedRoles={routePermissions["/maintenance"]}>
-                    <Maintenance />
+                    <MaintenanceRouter />
                   </RequireRole>
                 }
               />
@@ -88,7 +117,7 @@ const App = () => (
                 path="/faults"
                 element={
                   <RequireRole allowedRoles={routePermissions["/faults"]}>
-                    <FaultReports />
+                    <FaultReportsRouter />
                   </RequireRole>
                 }
               />
