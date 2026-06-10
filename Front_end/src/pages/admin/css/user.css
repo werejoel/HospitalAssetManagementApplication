@@ -282,6 +282,33 @@
   border-color: rgba(225, 29, 72, 0.15);
 }
 
+.users-action-btn.deactivate {
+  color: var(--u-amber);
+}
+
+.users-action-btn.deactivate:hover {
+  background: var(--u-amber-dim);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.users-action-btn.block {
+  color: var(--u-rose);
+}
+
+.users-action-btn.block:hover {
+  background: var(--u-rose-dim);
+  border-color: rgba(225, 29, 72, 0.15);
+}
+
+.users-action-btn.activate {
+  color: var(--u-emerald);
+}
+
+.users-action-btn.activate:hover {
+  background: rgba(5, 150, 105, 0.1);
+  border-color: rgba(5, 150, 105, 0.2);
+}
+
 .users-action-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -363,4 +390,118 @@
 .users-empty svg {
   margin: 0 auto 1rem;
   opacity: 0.25;
+}
+
+/* Delete confirmation dialog */
+.users-delete-dialog {
+  border-color: var(--u-border);
+  font-family: var(--u-font-body);
+}
+
+.users-delete-dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--u-rose-dim);
+  color: var(--u-rose);
+  margin-bottom: 0.25rem;
+}
+
+.users-delete-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+}
+
+.users-delete-dialog-user {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--u-radius-sm);
+  background: var(--u-surface-2);
+  border: 1px solid var(--u-border);
+}
+
+.users-delete-dialog-name {
+  font-family: var(--u-font-head);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--u-text-head);
+}
+
+.users-delete-dialog-email {
+  font-size: 0.82rem;
+  color: var(--u-text-muted);
+}
+
+.users-delete-dialog-confirm {
+  background: var(--u-rose) !important;
+  color: #fff !important;
+}
+
+.users-delete-dialog-confirm:hover {
+  background: #be123c !important;
+}
+
+/* Status change dialogs */
+.users-status-dialog {
+  border-color: var(--u-border);
+  font-family: var(--u-font-body);
+}
+
+.users-status-dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  margin-bottom: 0.25rem;
+}
+
+.users-status-dialog-icon.deactivate {
+  background: var(--u-amber-dim);
+  color: var(--u-amber);
+}
+
+.users-status-dialog-icon.block {
+  background: var(--u-rose-dim);
+  color: var(--u-rose);
+}
+
+.users-status-dialog-icon.activate {
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--u-emerald);
+}
+
+.users-status-dialog-confirm.deactivate {
+  background: var(--u-amber) !important;
+  color: #fff !important;
+}
+
+.users-status-dialog-confirm.deactivate:hover {
+  background: #d97706 !important;
+}
+
+.users-status-dialog-confirm.block {
+  background: var(--u-rose) !important;
+  color: #fff !important;
+}
+
+.users-status-dialog-confirm.block:hover {
+  background: #be123c !important;
+}
+
+.users-status-dialog-confirm.activate {
+  background: var(--u-emerald) !important;
+  color: #fff !important;
+}
+
+.users-status-dialog-confirm.activate:hover {
+  background: #047857 !important;
 }

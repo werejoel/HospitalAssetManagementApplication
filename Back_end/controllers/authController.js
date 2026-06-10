@@ -81,6 +81,20 @@ const login = async (req, res) => {
     }
 
     const user = result.rows[0];
+
+    if (user.status === "inactive") {
+      return res.status(403).json({
+        error:
+          "Your account has been deactivated. Please contact an administrator.",
+      });
+    }
+
+    if (user.status === "suspended") {
+      return res.status(403).json({
+        error: "Your account has been blocked. Please contact an administrator.",
+      });
+    }
+
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
@@ -119,23 +133,37 @@ const verify = async (req, res) => {
 
     // Fetch the current user data from the database
     const result = await pool.query(
-      "SELECT user_id, full_name, email, username, phone_number, role_id FROM users WHERE user_id = $1 AND status = 'active'",
+      "SELECT user_id, full_name, email, username, phone_number, role_id, status FROM users WHERE user_id = $1",
       [userId],
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: "User not found or inactive" });
+      return res.status(401).json({ error: "User not found" });
     }
 
-    const user = result.rows[0];
+    const account = result.rows[0];
+
+    if (account.status === "inactive") {
+      return res.status(403).json({
+        error:
+          "Your account has been deactivated. Please contact an administrator.",
+      });
+    }
+
+    if (account.status === "suspended") {
+      return res.status(403).json({
+        error: "Your account has been blocked. Please contact an administrator.",
+      });
+    }
+
     res.json({
       user: {
-        id: user.user_id,
-        full_name: user.full_name,
-        email: user.email,
-        username: user.username,
-        role: user.role_id,
-        phone_number: user.phone_number,
+        id: account.user_id,
+        full_name: account.full_name,
+        email: account.email,
+        username: account.username,
+        role: account.role_id,
+        phone_number: account.phone_number,
       },
     });
   } catch (err) {

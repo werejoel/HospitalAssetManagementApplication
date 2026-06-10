@@ -41,6 +41,8 @@ export const API_ENDPOINTS = {
     UPDATE: (id) => `/users/${id}`,
     DELETE: (id) => `/users/${id}`,
     DEACTIVATE: (id) => `/users/${id}/deactivate`,
+    BLOCK: (id) => `/users/${id}/block`,
+    ACTIVATE: (id) => `/users/${id}/activate`,
   },
 
   // Suppliers
@@ -192,6 +194,8 @@ export const usersAPI = {
   create: (data) => apiCall(API_ENDPOINTS.USERS.CREATE, "POST", data),
   update: (id, data) => apiCall(API_ENDPOINTS.USERS.UPDATE(id), "PUT", data),
   deactivate: (id) => apiCall(API_ENDPOINTS.USERS.DEACTIVATE(id), "PATCH"),
+  block: (id) => apiCall(API_ENDPOINTS.USERS.BLOCK(id), "PATCH"),
+  activate: (id) => apiCall(API_ENDPOINTS.USERS.ACTIVATE(id), "PATCH"),
   delete: (id) => apiCall(API_ENDPOINTS.USERS.DELETE(id), "DELETE"),
 };
 

@@ -162,35 +162,81 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Deactivate user
-const deactivateUser = async (req, res) => {
+const updateUserAccountStatus = async (req, res, status, actionLabel) => {
   const { id } = req.params;
+
+  if (req.user?.id === id) {
+    return res
+      .status(400)
+      .json({ error: "You cannot change your own account status" });
+  }
+
   try {
+    await pool.query("BEGIN");
+
     const result = await pool.query(
-      `UPDATE users SET status = 'inactive', updated_at = CURRENT_TIMESTAMP
-       WHERE user_id = $1 RETURNING user_id, full_name, email, username, status`,
-      [id],
+      `UPDATE users SET status = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE user_id = $2
+       RETURNING user_id, full_name, email, username, status`,
+      [status, id],
     );
-    if (result.rows.length === 0)
+
+    if (result.rows.length === 0) {
+      await pool.query("ROLLBACK");
       return res.status(404).json({ error: "User not found" });
-    res.json({ message: "User deactivated", user: result.rows[0] });
+    }
+
+    await pool.query(
+      `UPDATE profiles SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2`,
+      [status, id],
+    );
+
+    await pool.query("COMMIT");
+    res.json({ message: `User ${actionLabel}`, user: result.rows[0] });
   } catch (err) {
+    await pool.query("ROLLBACK");
     res.status(500).json({ error: err.message });
   }
 };
+
+// Deactivate user
+const deactivateUser = (req, res) =>
+  updateUserAccountStatus(req, res, "inactive", "deactivated");
+
+// Block user
+const blockUser = (req, res) =>
+  updateUserAccountStatus(req, res, "suspended", "blocked");
+
+// Reactivate user
+const activateUser = (req, res) =>
+  updateUserAccountStatus(req, res, "active", "activated");
 
 // Delete user
 const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await pool.query(
-      `DELETE FROM users WHERE user_id = $1 RETURNING user_id, full_name, email`,
+    await pool.query("BEGIN");
+
+    const existing = await pool.query(
+      `SELECT user_id, full_name, email FROM users WHERE user_id = $1`,
       [id],
     );
-    if (result.rows.length === 0)
+    if (existing.rows.length === 0) {
+      await pool.query("ROLLBACK");
       return res.status(404).json({ error: "User not found" });
-    res.json({ message: "User deleted successfully", user: result.rows[0] });
+    }
+
+    await pool.query("DELETE FROM profiles WHERE user_id = $1", [id]);
+    await pool.query("DELETE FROM user_roles WHERE user_id = $1", [id]);
+    await pool.query("DELETE FROM users WHERE user_id = $1", [id]);
+
+    await pool.query("COMMIT");
+    res.json({
+      message: "User deleted successfully",
+      user: existing.rows[0],
+    });
   } catch (err) {
+    await pool.query("ROLLBACK");
     res.status(500).json({ error: err.message });
   }
 };
@@ -201,6 +247,8 @@ module.exports = {
   createUser,
   updateUser,
   deactivateUser,
+  blockUser,
+  activateUser,
   deleteUser,
   getLoginProfiles,
 };

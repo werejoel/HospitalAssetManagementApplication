@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus, Trash2, Edit, AlertTriangle, Ban, UserX, UserCheck } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
 import { usersAPI, departmentsAPI } from "@/lib/api";
 import {
   Dialog,
@@ -14,6 +15,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import "./css/User.css";
 
 const ROLE_OPTIONS = [
@@ -25,6 +37,7 @@ const ROLE_OPTIONS = [
 ];
 
 export default function UsersPage() {
+  const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -94,6 +107,41 @@ export default function UsersPage() {
     },
   });
 
+  const deactivateMutation = useMutation({
+    mutationFn: (userId: string) => usersAPI.deactivate(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error: any) => {
+      alert(error.message || "Failed to deactivate user");
+    },
+  });
+
+  const blockMutation = useMutation({
+    mutationFn: (userId: string) => usersAPI.block(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error: any) => {
+      alert(error.message || "Failed to block user");
+    },
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: (userId: string) => usersAPI.activate(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error: any) => {
+      alert(error.message || "Failed to activate user");
+    },
+  });
+
+  const isStatusUpdating =
+    deactivateMutation.isPending ||
+    blockMutation.isPending ||
+    activateMutation.isPending;
+
   //Handlers
   const resetForm = () => {
     setFormData({
@@ -140,11 +188,35 @@ export default function UsersPage() {
     }
   };
 
-  const handleDeleteClick = (userId: string) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      deleteMutation.mutate(userId);
-    }
+  const handleDeleteUser = (userId: string) => {
+    deleteMutation.mutate(userId);
   };
+
+  const handleDeactivateUser = (userId: string) => {
+    deactivateMutation.mutate(userId);
+  };
+
+  const handleBlockUser = (userId: string) => {
+    blockMutation.mutate(userId);
+  };
+
+  const handleActivateUser = (userId: string) => {
+    activateMutation.mutate(userId);
+  };
+
+  const isCurrentUser = (userId: string) => currentUser?.id === userId;
+
+  const renderStatusDialogUser = (user: any) => (
+    <div className="users-delete-dialog-user">
+      <span className="users-delete-dialog-name">{user.full_name}</span>
+      <span className="users-delete-dialog-email">{user.email}</span>
+      {user.role_id && (
+        <span className="role-pill" data-role={user.role_id}>
+          {user.role_id.replace("_", " ")}
+        </span>
+      )}
+    </div>
+  );
 
   //Loading / error states
   if (usersLoading || departmentsLoading) {
@@ -358,14 +430,198 @@ export default function UsersPage() {
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button
-                          className="users-action-btn delete"
-                          onClick={() => handleDeleteClick(user.user_id)}
-                          disabled={deleteMutation.isPending}
-                          title="Delete user"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+
+                        {user.status === "active" && !isCurrentUser(user.user_id) && (
+                          <>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  className="users-action-btn deactivate"
+                                  disabled={isStatusUpdating}
+                                  title="Deactivate user"
+                                >
+                                  <UserX className="w-4 h-4" />
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="users-status-dialog">
+                                <AlertDialogHeader>
+                                  <div className="users-status-dialog-icon deactivate">
+                                    <UserX className="w-5 h-5" />
+                                  </div>
+                                  <AlertDialogTitle>Deactivate User</AlertDialogTitle>
+                                  <AlertDialogDescription asChild>
+                                    <div className="users-delete-dialog-body">
+                                      <p>
+                                        This user will no longer be able to sign in.
+                                        You can reactivate their account later.
+                                      </p>
+                                      {renderStatusDialogUser(user)}
+                                    </div>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      handleDeactivateUser(user.user_id)
+                                    }
+                                    disabled={deactivateMutation.isPending}
+                                    className="users-status-dialog-confirm deactivate"
+                                  >
+                                    {deactivateMutation.isPending
+                                      ? "Deactivating…"
+                                      : "Deactivate"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  className="users-action-btn block"
+                                  disabled={isStatusUpdating}
+                                  title="Block user"
+                                >
+                                  <Ban className="w-4 h-4" />
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="users-status-dialog">
+                                <AlertDialogHeader>
+                                  <div className="users-status-dialog-icon block">
+                                    <Ban className="w-5 h-5" />
+                                  </div>
+                                  <AlertDialogTitle>Block User</AlertDialogTitle>
+                                  <AlertDialogDescription asChild>
+                                    <div className="users-delete-dialog-body">
+                                      <p>
+                                        This user will be blocked from accessing
+                                        the system. Use this for policy violations
+                                        or security concerns.
+                                      </p>
+                                      {renderStatusDialogUser(user)}
+                                    </div>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleBlockUser(user.user_id)}
+                                    disabled={blockMutation.isPending}
+                                    className="users-status-dialog-confirm block"
+                                  >
+                                    {blockMutation.isPending
+                                      ? "Blocking…"
+                                      : "Block User"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
+                        )}
+
+                        {(user.status === "inactive" ||
+                          user.status === "suspended") &&
+                          !isCurrentUser(user.user_id) && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  className="users-action-btn activate"
+                                  disabled={isStatusUpdating}
+                                  title="Activate user"
+                                >
+                                  <UserCheck className="w-4 h-4" />
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="users-status-dialog">
+                                <AlertDialogHeader>
+                                  <div className="users-status-dialog-icon activate">
+                                    <UserCheck className="w-5 h-5" />
+                                  </div>
+                                  <AlertDialogTitle>Activate User</AlertDialogTitle>
+                                  <AlertDialogDescription asChild>
+                                    <div className="users-delete-dialog-body">
+                                      <p>
+                                        Restore this user&apos;s access so they can
+                                        sign in again.
+                                      </p>
+                                      {renderStatusDialogUser(user)}
+                                    </div>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      handleActivateUser(user.user_id)
+                                    }
+                                    disabled={activateMutation.isPending}
+                                    className="users-status-dialog-confirm activate"
+                                  >
+                                    {activateMutation.isPending
+                                      ? "Activating…"
+                                      : "Activate User"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button
+                              className="users-action-btn delete"
+                              disabled={deleteMutation.isPending}
+                              title="Delete user"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="users-delete-dialog">
+                            <AlertDialogHeader>
+                              <div className="users-delete-dialog-icon">
+                                <AlertTriangle className="w-5 h-5" />
+                              </div>
+                              <AlertDialogTitle>Delete User</AlertDialogTitle>
+                              <AlertDialogDescription asChild>
+                                <div className="users-delete-dialog-body">
+                                  <p>
+                                    Are you sure you want to permanently delete
+                                    this user? This action cannot be undone.
+                                  </p>
+                                  <div className="users-delete-dialog-user">
+                                    <span className="users-delete-dialog-name">
+                                      {user.full_name}
+                                    </span>
+                                    <span className="users-delete-dialog-email">
+                                      {user.email}
+                                    </span>
+                                    {user.role_id && (
+                                      <span
+                                        className="role-pill"
+                                        data-role={user.role_id}
+                                      >
+                                        {user.role_id.replace("_", " ")}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteUser(user.user_id)}
+                                disabled={deleteMutation.isPending}
+                                className="users-delete-dialog-confirm"
+                              >
+                                {deleteMutation.isPending
+                                  ? "Deleting…"
+                                  : "Delete User"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </td>
                   </tr>

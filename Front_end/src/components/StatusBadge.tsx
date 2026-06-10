@@ -9,6 +9,8 @@ const statusConfig: Record<string, string> = {
   // Asset Statuses
   "in use": "bg-success/10 text-success border border-success/20",
   active: "bg-success/10 text-success border border-success/20",
+  inactive: "bg-amber-500/10 text-amber-700 border border-amber-500/20",
+  suspended: "bg-destructive/10 text-destructive border border-destructive/20",
   available: "bg-success/10 text-success border border-success/20",
   assigned: "bg-slate-500/10 text-slate-700 border border-slate-500/20",
   "under maintenance":
