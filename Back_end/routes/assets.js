@@ -10,10 +10,10 @@ router.get("/", authenticateToken, getAllAssets);
 router.get("/:id", authenticateToken, getAssetById);
 
 // Create asset (admin/store manager only)
-router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager", "store_manager"), createAsset);
+router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager", "store_manager","technician"), createAsset);
 
 // Update asset (admin/store manager only)
-router.put("/:id", authenticateToken, authorizeRoles("admin", "asset_manager", "store_manager"), updateAsset);
+router.put("/:id", authenticateToken, authorizeRoles("admin", "asset_manager", "store_manager","technician"), updateAsset);
 
 // Delete asset (admin only)
 router.delete("/:id", authenticateToken, authorizeRoles("admin"), deleteAsset);
