@@ -1,9 +1,13 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { normalizeRole } from "@/lib/roleConfig";
 
 const getDefaultRouteForRole = (role: string) => {
-  switch (role) {
+  const normalizedRole = normalizeRole(role);
+
+  switch (normalizedRole) {
     case "asset_manager":
+    case "store_manager":
       return "/assets";
     case "technician":
       return "/maintenance";
@@ -25,7 +29,12 @@ export default function RequireRole({
 }) {
   const { user } = useAuth();
 
-  if (!user || !allowedRoles.includes(user.role)) {
+  const normalizedRole = normalizeRole(user?.role);
+  const canAccess = allowedRoles.some(
+    (allowedRole) => normalizeRole(allowedRole) === normalizedRole,
+  );
+
+  if (!user || !canAccess) {
     const defaultRoute = getDefaultRouteForRole(user?.role || "");
     return <Navigate to={defaultRoute} replace />;
   }

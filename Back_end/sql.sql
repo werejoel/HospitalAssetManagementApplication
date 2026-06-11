@@ -2,8 +2,6 @@
 CREATE TYPE "AppRole" AS ENUM ('admin', 'technician', 'department_head', 'asset_manager', 'staff');
 CREATE TYPE "UserStatus" AS ENUM ('active', 'inactive', 'suspended');
 
-
-
 -- Create tables
 CREATE TABLE "users" (
     "user_id" TEXT NOT NULL,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { getNavItemsForRole } from "@/lib/roleConfig";
+import { formatRoleLabel, getNavItemsForRole } from "@/lib/roleConfig";
 import {
   ChevronLeft,
   ChevronRight,
@@ -53,7 +53,7 @@ function SidebarContent({ collapsed, setCollapsed, onMobileClose }: any) {
               Asset Information Management
             </p>
             <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-sidebar-muted">
-              {user?.role.replaceAll("_", " ")}
+              {formatRoleLabel(user?.role)}
             </p>
           </div>
         )}

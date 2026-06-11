@@ -8,6 +8,8 @@ import {
   Trash2,
   Search,
   Download,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -49,17 +51,20 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { assignmentsAPI, assetsAPI, usersAPI, departmentsAPI } from "@/lib/api";
+import { canManageAssetStatus, normalizeRole } from "@/lib/roleConfig";
 
 const initialAssignmentForm = {
   asset_id: "",
   assigned_to: "",
   department_id: "",
-  status: "active",
+  status: "pending",
 };
 
 const Assignments = () => {
   const { user } = useAuth();
-  const isStaff = user?.role === "staff";
+  const normalizedRole = normalizeRole(user?.role);
+  const isStaff = normalizedRole === "staff";
+  const isStoreManager = canManageAssetStatus(normalizedRole);
   const { isRefreshing, refreshData } = useRefreshData();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -91,15 +96,26 @@ const Assignments = () => {
   const isLoading =
     assignmentsLoading || assetsLoading || usersLoading || departmentsLoading;
   const error = assignmentsError;
+  const canUpdateAssetStatus = canManageAssetStatus(user?.role);
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Create the assignment first
-      const assignment = await assignmentsAPI.create(data);
+      const payload = {
+        ...data,
+        assigned_to: data.assigned_to || user?.id || "",
+        status: data.status || "pending",
+      };
 
-      // If assignment is active, update asset status to "assigned"
-      if (data.status === "active") {
-        await assetsAPI.update(data.asset_id, { status: "assigned" });
+      const assignment = await assignmentsAPI.create(payload);
+
+      if (canUpdateAssetStatus) {
+        if (payload.status === "active" || payload.status === "approved") {
+          await assetsAPI.update(payload.asset_id, { status: "assigned" });
+        } else if (payload.status === "pending" || payload.status === "requested") {
+          await assetsAPI.update(payload.asset_id, { status: "requested" });
+        } else if (payload.status === "rejected" || payload.status === "returned") {
+          await assetsAPI.update(payload.asset_id, { status: "available" });
+        }
       }
 
       return assignment;
@@ -121,16 +137,18 @@ const Assignments = () => {
       // Get the current assignment to check status change
       const currentAssignment = assignments.find((a) => a.id === id);
 
-      // Update the assignment
       const assignment = await assignmentsAPI.update(id, data);
 
-      // Update asset status based on new assignment status
-      if (data.status === "active") {
-        await assetsAPI.update(data.asset_id, { status: "assigned" });
-      } else if (data.status === "returned") {
-        await assetsAPI.update(data.asset_id, { status: "available" });
-      } else if (data.status === "lost") {
-        await assetsAPI.update(data.asset_id, { status: "lost" });
+      if (canUpdateAssetStatus) {
+        if (data.status === "active" || data.status === "approved") {
+          await assetsAPI.update(data.asset_id, { status: "assigned" });
+        } else if (data.status === "pending" || data.status === "requested") {
+          await assetsAPI.update(data.asset_id, { status: "requested" });
+        } else if (data.status === "returned" || data.status === "rejected") {
+          await assetsAPI.update(data.asset_id, { status: "available" });
+        } else if (data.status === "lost") {
+          await assetsAPI.update(data.asset_id, { status: "lost" });
+        }
       }
 
       return assignment;
@@ -173,21 +191,28 @@ const Assignments = () => {
 
   const filteredAssignments = useMemo(() => {
     const query = search.toLowerCase();
+
     return assignments.filter((a: any) => {
+      if (isStaff && a.assigned_to !== user?.id) {
+        return false;
+      }
+
       const asset = assets.find((ast: any) => ast.id === a.asset_id);
-      const user = users.find((u: any) => u.user_id === a.assigned_to);
+      const requester = users.find((u: any) => u.user_id === a.assigned_to);
+
       return (
         asset?.asset_name?.toLowerCase().includes(query) ||
         asset?.asset_tag?.toLowerCase().includes(query) ||
-        user?.username?.toLowerCase().includes(query) ||
-        user?.email?.toLowerCase().includes(query)
+        requester?.username?.toLowerCase().includes(query) ||
+        requester?.email?.toLowerCase().includes(query) ||
+        a.status?.toLowerCase().includes(query)
       );
     });
-  }, [assignments, assets, users, search]);
+  }, [assignments, assets, users, search, isStaff, user?.id]);
 
-  const totalAssignments = assignments.length;
-  const activeAssignments = assignments.filter(
-    (a: any) => a.status === "active",
+  const totalAssignments = filteredAssignments.length;
+  const pendingApprovals = filteredAssignments.filter(
+    (a: any) => a.status?.toLowerCase() === "pending",
   ).length;
   const getStatusBadge = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -216,7 +241,11 @@ const Assignments = () => {
 
   const handleOpenCreate = () => {
     setEditingAssignment(null);
-    setAssignmentForm(initialAssignmentForm);
+    setAssignmentForm({
+      ...initialAssignmentForm,
+      assigned_to: user?.id || "",
+      status: "pending",
+    });
     setIsDialogOpen(true);
   };
 
@@ -233,20 +262,46 @@ const Assignments = () => {
 
   const handleSaveAssignment = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!assignmentForm.asset_id.trim() || !assignmentForm.assigned_to.trim()) {
-      alert("Asset and assigned user are required");
+
+    const payload = {
+      ...assignmentForm,
+      assigned_to: assignmentForm.assigned_to || user?.id || "",
+      status: isStaff ? "pending" : assignmentForm.status || "pending",
+    };
+
+    if (!payload.asset_id.trim()) {
+      alert("Please choose an asset before submitting your request.");
+      return;
+    }
+
+    if (!payload.assigned_to.trim()) {
+      alert("Your user record could not be found. Please sign in again and try.");
       return;
     }
 
     if (editingAssignment) {
-      updateMutation.mutate({ id: editingAssignment.id, data: assignmentForm });
+      updateMutation.mutate({ id: editingAssignment.id, data: payload });
     } else {
-      createMutation.mutate(assignmentForm);
+      createMutation.mutate(payload);
     }
   };
 
   const handleDeleteAssignment = (id: string) => {
     deleteMutation.mutate(id);
+  };
+
+  const handleApproveRequest = (assignment: any) => {
+    updateMutation.mutate({
+      id: assignment.id,
+      data: { ...assignment, status: "approved" },
+    });
+  };
+
+  const handleRejectRequest = (assignment: any) => {
+    updateMutation.mutate({
+      id: assignment.id,
+      data: { ...assignment, status: "rejected" },
+    });
   };
 
   const handleExportExcel = () => {
@@ -298,9 +353,9 @@ const Assignments = () => {
     return (
       <div className="px-4 sm:px-6 md:p-6">
         <Alert>
-          <AlertTitle>Loading assignments</AlertTitle>
+          <AlertTitle>Loading requests</AlertTitle>
           <AlertDescription>
-            Fetching assignment records from the server.
+            Fetching asset request records from the server.
           </AlertDescription>
         </Alert>
       </div>
@@ -311,7 +366,7 @@ const Assignments = () => {
     return (
       <div className="px-4 sm:px-6 md:p-6">
         <Alert variant="destructive">
-          <AlertTitle>Unable to load assignments</AlertTitle>
+          <AlertTitle>Unable to load requests</AlertTitle>
           <AlertDescription>
             {String(error) ||
               "There was a problem loading assignment data. Please refresh or try again later."}
@@ -324,8 +379,8 @@ const Assignments = () => {
   return (
     <div className="px-4 sm:px-6 md:p-6">
       <PageHeader
-        title="Asset Assignments"
-        description="Track asset assignments to staff and departments"
+        title="Asset Requests"
+        description="Staff can request assets and store managers can approve them."
       >
         <div className="flex flex-wrap gap-3">
           <Button
@@ -339,25 +394,35 @@ const Assignments = () => {
           <Button variant="outline" size="sm" onClick={handleExportExcel}>
             <Download className="w-4 h-4" /> Export
           </Button>
-          {!isStaff && (
-            <Button size="sm" onClick={handleOpenCreate}>
-              <Plus className="w-4 h-4" /> New Assignment
-            </Button>
-          )}
+          <Button size="sm" onClick={handleOpenCreate}>
+            <Plus className="w-4 h-4" />
+            {isStaff ? "New Request" : "New Request"}
+          </Button>
         </div>
       </PageHeader>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingAssignment ? "Edit Assignment" : "Create Assignment"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingAssignment
-                ? "Update assignment details and save changes."
-                : "Assign an asset to a staff member or department."}
-            </DialogDescription>
+            <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-sky-50 p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">
+                Request workflow
+              </p>
+              <DialogTitle className="mt-1 text-xl text-emerald-950">
+                {editingAssignment
+                  ? "Edit Request"
+                  : isStaff
+                    ? "Request an Asset"
+                    : "Create Request"}
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-sm text-emerald-800">
+                {editingAssignment
+                  ? "Adjust the request details and save the update."
+                  : isStaff
+                    ? "Choose an asset and submit your request. Store Manager will approve or reject it from the requests page."
+                    : "Create a request for a staff member, team, or department and track its progress."}
+              </DialogDescription>
+            </div>
           </DialogHeader>
           <form onSubmit={handleSaveAssignment} className="space-y-4">
             <div>
@@ -374,36 +439,53 @@ const Assignments = () => {
                   <SelectValue placeholder="Select an asset" />
                 </SelectTrigger>
                 <SelectContent>
-                  {assets.map((asset: any) => (
-                    <SelectItem key={asset.id} value={asset.id}>
-                      {asset.asset_name} ({asset.asset_tag})
-                    </SelectItem>
-                  ))}
+                  {assets
+                    .filter((asset: any) => {
+                      const status = String(asset.status || "").toLowerCase();
+                      return isStaff ? status === "available" || status === "new" : true;
+                    })
+                    .map((asset: any) => (
+                      <SelectItem key={asset.id} value={asset.id}>
+                        {asset.asset_name} ({asset.asset_tag})
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-muted-foreground">
-                Assigned To *
+            <div className="rounded-xl border border-sky-100 bg-sky-50/80 p-4 shadow-sm">
+              <label className="mb-2 block text-sm font-semibold text-sky-900">
+                Requested By
               </label>
-              <Select
-                value={assignmentForm.assigned_to}
-                onValueChange={(value) =>
-                  setAssignmentForm({ ...assignmentForm, assigned_to: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a user" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user: any) => (
-                    <SelectItem key={user.user_id} value={user.user_id}>
-                      {user.username} ({user.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isStaff ? (
+                <div className="flex items-center justify-between rounded-xl border border-sky-200 bg-white p-3 text-sm text-sky-900 shadow-sm">
+                  <div>
+                    <p className="font-semibold">{user?.full_name || user?.username || "Current staff member"}</p>
+                    <p className="text-xs text-sky-700">{user?.email || "Your account will be used automatically"}</p>
+                  </div>
+                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+                    Staff request
+                  </Badge>
+                </div>
+              ) : (
+                <Select
+                  value={assignmentForm.assigned_to}
+                  onValueChange={(value) =>
+                    setAssignmentForm({ ...assignmentForm, assigned_to: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((user: any) => (
+                      <SelectItem key={user.user_id} value={user.user_id}>
+                        {user.username} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div>
@@ -443,9 +525,20 @@ const Assignments = () => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="returned">Returned</SelectItem>
-                  <SelectItem value="lost">Lost</SelectItem>
+                  {isStaff ? (
+                    <>
+                      <SelectItem value="pending">Pending approval</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="pending">Pending approval</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="returned">Returned</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="lost">Lost</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -459,7 +552,7 @@ const Assignments = () => {
                 Cancel
               </Button>
               <Button type="submit">
-                {editingAssignment ? "Update Assignment" : "Create Assignment"}
+                {editingAssignment ? "Update Request" : "Submit Request"}
               </Button>
             </div>
           </form>
@@ -471,7 +564,7 @@ const Assignments = () => {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-emerald-700">
-                Total assignments
+                Total requests
               </p>
               <p className="mt-2 text-3xl font-semibold text-emerald-950">
                 {totalAssignments}
@@ -482,7 +575,7 @@ const Assignments = () => {
             </div>
           </div>
           <p className="mt-4 text-sm text-emerald-600">
-            All asset assignments in the system.
+            All asset requests in the system.
           </p>
         </div>
 
@@ -490,10 +583,10 @@ const Assignments = () => {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-sky-700">
-                Active assignments
+                Pending approvals
               </p>
               <p className="mt-2 text-3xl font-semibold text-sky-950">
-                {activeAssignments}
+                {pendingApprovals}
               </p>
             </div>
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 shadow-sm">
@@ -501,7 +594,7 @@ const Assignments = () => {
             </div>
           </div>
           <p className="mt-4 text-sm text-sky-600">
-            Assets currently assigned to staff.
+            Requests currently waiting for approval.
           </p>
         </div>
       </div>
@@ -511,7 +604,7 @@ const Assignments = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             className="pl-10"
-            placeholder="Search assignments..."
+            placeholder="Search requests..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -523,8 +616,8 @@ const Assignments = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Asset</TableHead>
-              <TableHead>Assigned To</TableHead>
-              <TableHead>Assigned Date</TableHead>
+              <TableHead>Requested By</TableHead>
+              <TableHead>Requested Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -537,9 +630,9 @@ const Assignments = () => {
                   className="p-8 text-center text-muted-foreground"
                 >
                   <Alert>
-                    <AlertTitle>No assignments found</AlertTitle>
+                    <AlertTitle>No requests found</AlertTitle>
                     <AlertDescription>
-                      Try a different search term or create a new assignment to
+                      Try a different search term or submit a new request to
                       get started.
                     </AlertDescription>
                   </Alert>
@@ -589,6 +682,26 @@ const Assignments = () => {
                     </TableCell>
                     <TableCell>{getStatusBadge(assignment.status)}</TableCell>
                     <TableCell className="text-right space-x-2">
+                      {isStoreManager && assignment.status?.toLowerCase() === "pending" && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleApproveRequest(assignment)}
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            Approve
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRejectRequest(assignment)}
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
                       {!isStaff && (
                         <>
                           <Button
@@ -609,10 +722,10 @@ const Assignments = () => {
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
-                                  Delete assignment
+                                  Delete request
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete this assignment?
+                                  Are you sure you want to delete this request?
                                   This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>

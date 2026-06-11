@@ -9,6 +9,10 @@ const statusConfig: Record<string, string> = {
   // Asset Statuses
   "in use": "bg-success/10 text-success border border-success/20",
   active: "bg-success/10 text-success border border-success/20",
+  approved: "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20",
+  pending: "bg-amber-500/10 text-amber-700 border border-amber-500/20",
+  requested: "bg-amber-500/10 text-amber-700 border border-amber-500/20",
+  rejected: "bg-destructive/10 text-destructive border border-destructive/20",
   inactive: "bg-amber-500/10 text-amber-700 border border-amber-500/20",
   suspended: "bg-destructive/10 text-destructive border border-destructive/20",
   available: "bg-success/10 text-success border border-success/20",

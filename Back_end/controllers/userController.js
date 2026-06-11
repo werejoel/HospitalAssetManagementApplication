@@ -40,7 +40,8 @@ const getLoginProfiles = async (req, res) => {
 const getRoleDisplayName = (role) => {
   const roleNames = {
     admin: "Administrator",
-    asset_manager: "Asset Manager",
+    asset_manager: "Store Manager",
+    store_manager: "Store Manager",
     technician: "Technician",
     department_head: "Department Head",
     staff: "Staff",
@@ -53,6 +54,7 @@ const getRoleIcon = (role) => {
   const roleIcons = {
     admin: "👨‍💼",
     asset_manager: "📊",
+    store_manager: "📊",
     technician: "🔧",
     department_head: "👨‍⚕️",
     staff: "👤",

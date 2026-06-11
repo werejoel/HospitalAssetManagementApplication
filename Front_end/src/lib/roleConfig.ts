@@ -16,6 +16,7 @@ import {
 export type Role =
   | "admin"
   | "asset_manager"
+  | "store_manager"
   | "technician"
   | "department_head"
   | "staff";
@@ -28,19 +29,58 @@ export type NavItem = {
   section: string;
 };
 
+export const normalizeRole = (role?: string) => {
+  const normalized = role?.toLowerCase().trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (normalized === "asset_manager") {
+    return "store_manager";
+  }
+
+  return normalized;
+};
+
+export const canManageAssetStatus = (role?: string) => {
+  const normalizedRole = normalizeRole(role);
+  return ["admin", "asset_manager", "store_manager"].includes(normalizedRole);
+};
+
+export const formatRoleLabel = (role?: string) => {
+  const normalizedRole = normalizeRole(role);
+
+  switch (normalizedRole) {
+    case "admin":
+      return "Administrator";
+    case "asset_manager":
+    case "store_manager":
+      return "Store Manager";
+    case "technician":
+      return "Technician";
+    case "department_head":
+      return "Department Head";
+    case "staff":
+      return "Staff";
+    default:
+      return role?.replaceAll("_", " ") || "User";
+  }
+};
+
 export const navItems: NavItem[] = [
   {
     path: "/",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "asset_manager", "staff"],
+    roles: ["admin", "asset_manager", "store_manager", "staff"],
     section: "Overview",
   },
   {
     path: "/assets",
     label: "Assets",
     icon: Package,
-    roles: ["admin", "asset_manager", "technician", "department_head", "staff"],
+    roles: ["admin", "asset_manager", "store_manager", "technician", "department_head", "staff"],
     section: "Inventory",
   },
   {
@@ -54,42 +94,42 @@ export const navItems: NavItem[] = [
     path: "/suppliers",
     label: "Suppliers",
     icon: Truck,
-    roles: ["admin", "asset_manager"],
+    roles: ["admin", "asset_manager", "store_manager"],
     section: "Inventory",
   },
   {
     path: "/maintenance",
     label: "Maintenance",
     icon: Wrench,
-    roles: ["admin", "asset_manager", "technician", "staff"],
+    roles: ["admin", "asset_manager", "store_manager", "technician", "staff"],
     section: "Service",
   },
   {
     path: "/faults",
     label: "Fault Reports",
     icon: AlertTriangle,
-    roles: ["admin", "asset_manager", "technician", "staff"],
+    roles: ["admin", "asset_manager", "store_manager", "technician", "staff"],
     section: "Service",
   },
   {
     path: "/assignments",
-    label: "Assignments",
+    label: "Requests",
     icon: ClipboardList,
-    roles: ["admin", "asset_manager", "department_head"],
+    roles: ["admin", "asset_manager", "store_manager", "department_head", "staff"],
     section: "Operations",
   },
   {
     path: "/movements",
     label: "Movements",
     icon: ArrowLeftRight,
-    roles: ["admin", "asset_manager"],
+    roles: ["admin", "asset_manager", "store_manager"],
     section: "Operations",
   },
   {
     path: "/disposals",
     label: "Disposals",
     icon: Trash2,
-    roles: ["admin", "asset_manager"],
+    roles: ["admin", "asset_manager", "store_manager"],
     section: "Operations",
   },
   {
@@ -103,8 +143,11 @@ export const navItems: NavItem[] = [
 
 export const getNavItemsForRole = (role: Role | string) => {
   const getDefaultRouteForRole = (role: string) => {
-    switch (role) {
+    const normalizedRole = normalizeRole(role);
+
+    switch (normalizedRole) {
       case "asset_manager":
+      case "store_manager":
         return "/assets";
       case "technician":
         return "/maintenance";
@@ -117,22 +160,26 @@ export const getNavItemsForRole = (role: Role | string) => {
     }
   };
 
-  if (role === "admin") {
+  const normalizedRole = normalizeRole(role);
+
+  if (normalizedRole === "admin") {
     return navItems;
   }
 
-  return navItems.filter((item) => item.roles.includes(role as Role));
+  return navItems.filter((item) =>
+    item.roles.includes(normalizedRole as Role),
+  );
 };
 
 export const routePermissions: Record<string, Role[]> = {
-  "/": ["admin", "asset_manager", "staff"],
-  "/assets": ["admin", "asset_manager", "technician", "department_head", "staff"],
-  "/maintenance": ["admin", "asset_manager", "technician", "staff"],
-  "/faults": ["admin", "asset_manager", "technician", "staff"],
+  "/": ["admin", "asset_manager", "store_manager", "staff"],
+  "/assets": ["admin", "asset_manager", "store_manager", "technician", "department_head", "staff"],
+  "/maintenance": ["admin", "asset_manager", "store_manager", "technician", "staff"],
+  "/faults": ["admin", "asset_manager", "store_manager", "technician", "staff"],
   "/departments": ["admin", "department_head"],
-  "/suppliers": ["admin", "asset_manager"],
-  "/assignments": ["admin", "asset_manager", "department_head"],
-  "/movements": ["admin", "asset_manager"],
-  "/disposals": ["admin", "asset_manager"],
+  "/suppliers": ["admin", "asset_manager", "store_manager"],
+  "/assignments": ["admin", "asset_manager", "store_manager", "department_head", "staff"],
+  "/movements": ["admin", "asset_manager", "store_manager"],
+  "/disposals": ["admin", "asset_manager", "store_manager"],
   "/users": ["admin"],
 };

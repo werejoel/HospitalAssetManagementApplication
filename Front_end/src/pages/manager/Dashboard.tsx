@@ -305,10 +305,10 @@ const ManagerDashboard = () => {
         <div className="max-w-7xl mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className=" sm:text-xl md:text-2xl font-bold tracking-tight uppercase mb-1">
-              Dashboard
+              Store Manager Dashboard
             </h1>
             <p className="text-[11px] sm:text-xs md:text-sm uppercase tracking-widest text-slate-300/80">
-              Overview for asset management and approvals
+              Store management, approvals, and request tracking
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -373,7 +373,7 @@ const ManagerDashboard = () => {
             icon={Truck}
           />
           <StatCard
-            title="Assignments"
+            title="Requests"
             value={dashboardStats.assignments}
             icon={ClipboardList}
             variant="primary"
@@ -420,9 +420,9 @@ const ManagerDashboard = () => {
         <div className="dashboard-card">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
-              <h3 className="dashboard-card-heading">Manager Quick Actions</h3>
+              <h3 className="dashboard-card-heading">Store Manager Quick Actions</h3>
               <p className="text-sm text-muted-foreground">
-                Search inventory or drill into active items.
+                Review inventory, requests, and approval activity from one place.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -585,9 +585,9 @@ const ManagerDashboard = () => {
         <div className="dashboard-card">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="dashboard-card-heading">Latest Assignments</h3>
+              <h3 className="dashboard-card-heading">Latest Requests</h3>
               <p className="text-sm text-muted-foreground">
-                Your most recent activity across assigned assets.
+                Recent asset requests waiting for your approval or follow-up.
               </p>
             </div>
             <TrendingUp className="w-4 h-4 text-muted-foreground" />

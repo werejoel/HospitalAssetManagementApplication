@@ -7,7 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import "./css/login.css";
 
 const ROLE_OPTIONS = [
-  { value: "asset_manager", label: "Asset Manager" },
+  { value: "store_manager", label: "Store Manager" },
+  { value: "asset_manager", label: "Store Manager (legacy)" },
   { value: "technician", label: "Technician" },
   { value: "department_head", label: "Department Head" },
   { value: "staff", label: "Staff" },

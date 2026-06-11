@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import { usersAPI, departmentsAPI } from "@/lib/api";
+import { formatRoleLabel } from "@/lib/roleConfig";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,8 @@ import "./css/User.css";
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
-  { value: "asset_manager", label: "Asset Manager" },
+  { value: "store_manager", label: "Store Manager" },
+  { value: "asset_manager", label: "Store Manager (legacy)" },
   { value: "technician", label: "Technician" },
   { value: "department_head", label: "Department Head" },
   { value: "staff", label: "Staff" },
@@ -212,7 +214,7 @@ export default function UsersPage() {
       <span className="users-delete-dialog-email">{user.email}</span>
       {user.role_id && (
         <span className="role-pill" data-role={user.role_id}>
-          {user.role_id.replace("_", " ")}
+          {formatRoleLabel(user.role_id)}
         </span>
       )}
     </div>
@@ -413,7 +415,7 @@ export default function UsersPage() {
                     </td>
                     <td>
                       <span className="role-pill" data-role={user.role_id}>
-                        {user.role_id?.replace("_", " ")}
+                        {formatRoleLabel(user.role_id)}
                       </span>
                     </td>
                     <td className="cell-dept">{user.department_name || "—"}</td>
@@ -601,7 +603,7 @@ export default function UsersPage() {
                                         className="role-pill"
                                         data-role={user.role_id}
                                       >
-                                        {user.role_id.replace("_", " ")}
+                                        {formatRoleLabel(user.role_id)}
                                       </span>
                                     )}
                                   </div>

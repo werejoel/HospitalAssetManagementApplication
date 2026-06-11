@@ -79,7 +79,7 @@ export default function StaffDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Staff Dashboard"
-        description="Quick access to asset listings, maintenance, and fault reports."
+        description="Request assets from the store manager and track their status."
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Input
@@ -124,12 +124,12 @@ export default function StaffDashboard() {
         <div className="rounded-xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold">Quick Actions</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            Jump directly to the tools you need most.
+            Submit requests to the store manager and follow their progress.
           </p>
           <div className="mt-4 space-y-3">
-            <Button className="w-full" onClick={() => navigate("/assets")}>View Assets</Button>
+            <Button className="w-full" onClick={() => navigate("/assignments")}>Request an Asset</Button>
+            <Button className="w-full" onClick={() => navigate("/assets")}>View Available Assets</Button>
             <Button className="w-full" onClick={() => navigate("/faults")}>Report a Fault</Button>
-            <Button className="w-full" onClick={() => navigate("/maintenance")}>Review Maintenance</Button>
           </div>
         </div>
 
