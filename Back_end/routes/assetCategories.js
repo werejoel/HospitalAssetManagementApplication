@@ -11,7 +11,7 @@ const { authenticateToken, authorizeRoles } = require("../middleware/auth");
 
 router.get("/", authenticateToken, getAllCategories);
 router.get("/:id", authenticateToken, getCategoryById);
-router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager"), createCategory);
-router.put("/:id", authenticateToken, authorizeRoles("admin", "asset_manager"), updateCategory);
+router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager","store_manager"), createCategory);
+router.put("/:id", authenticateToken, authorizeRoles("admin", "asset_manager","store_manager"), updateCategory);
 router.delete("/:id", authenticateToken, authorizeRoles("admin"), deleteCategory);
 module.exports = router;

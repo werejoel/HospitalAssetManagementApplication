@@ -5,8 +5,8 @@ const { authenticateToken, authorizeRoles } = require("../middleware/auth");
 
 router.get("/", authenticateToken, getAllMaintenance);
 router.get("/:id", authenticateToken, getMaintenanceById);
-router.post("/", authenticateToken, authorizeRoles("admin", "technician"), createMaintenance);
-router.put("/:id", authenticateToken, authorizeRoles("admin", "technician"), updateMaintenance);
-router.delete("/:id", authenticateToken, authorizeRoles("admin"), deleteMaintenance);
+router.post("/", authenticateToken, authorizeRoles("admin", "technician","store_manager"), createMaintenance);
+router.put("/:id", authenticateToken, authorizeRoles("admin", "technician","store_manager"), updateMaintenance);
+router.delete("/:id", authenticateToken, authorizeRoles("admin","store_manager"), deleteMaintenance);
 
 module.exports = router;

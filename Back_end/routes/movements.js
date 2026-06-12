@@ -7,8 +7,8 @@ const movementController = createCrudControllers("asset_movements", ["asset_id",
 
 router.get("/", authenticateToken, movementController.getAll);
 router.get("/:id", authenticateToken, movementController.getById);
-router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager", "technician"), movementController.create);
-router.put("/:id", authenticateToken, authorizeRoles("admin", "asset_manager", "technician"), movementController.update);
-router.delete("/:id", authenticateToken, authorizeRoles("admin"), movementController.delete);
+router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager", "technician", "store_manager"), movementController.create);
+router.put("/:id", authenticateToken, authorizeRoles("admin", "asset_manager", "technician", "store_manager"), movementController.update);
+router.delete("/:id", authenticateToken, authorizeRoles("admin", "store_manager"), movementController.delete);
 
 module.exports = router;

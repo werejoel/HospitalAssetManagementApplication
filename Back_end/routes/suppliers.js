@@ -7,8 +7,8 @@ const supplierController = createCrudControllers("suppliers", ["supplier_name", 
 
 router.get("/", authenticateToken, supplierController.getAll);
 router.get("/:id", authenticateToken, supplierController.getById);
-router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager"), supplierController.create);
-router.put("/:id", authenticateToken, authorizeRoles("admin", "asset_manager"), supplierController.update);
-router.delete("/:id", authenticateToken, authorizeRoles("admin"), supplierController.delete);
+router.post("/", authenticateToken, authorizeRoles("admin", "asset_manager","store_manager"), supplierController.create);
+router.put("/:id", authenticateToken, authorizeRoles("admin", "asset_manager","store_manager"), supplierController.update);
+router.delete("/:id", authenticateToken, authorizeRoles("admin","store_manager"), supplierController.delete);
 
 module.exports = router;
